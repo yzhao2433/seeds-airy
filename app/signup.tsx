@@ -66,7 +66,7 @@ function SignUp() {
       />
 
       <Button title="Sign Up" onPress={handleSubmit(onSubmit)} />
-      <Text style={{textAlign: 'center'}}>
+      <Text style={{ textAlign: "center" }}>
         Already have an account? <Link href="login">Log In</Link>
       </Text>
     </View>

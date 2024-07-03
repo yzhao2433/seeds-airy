@@ -1,18 +1,27 @@
+// chat edits: https://chatgpt.com/share/63d551b2-6af7-470c-ba14-440e77c84d0d
+// removed incomplete functions and added code from following article to debug navigating before mounting rootlayer:
+//https://github.com/expo/router/issues/740#issuecomment-1625033355
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, router, useFocusEffect } from "expo-router";
+import {
+  Stack,
+  useRouter,
+  useFocusEffect,
+  useRootNavigationState,
+} from "expo-router"; // Correct import for useRouter
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import "react-native-reanimated";
+import { useNavigation } from "@react-navigation/native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { auth } from "./firebase";
 import { SafeAreaView, Text } from "react-native";
-import Login from "./login";
+import login from "./login";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -23,6 +32,10 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const [user, setUser] = useState(auth.currentUser);
+  const router = useRouter(); // Correct usage of useRouter
+
+  const [isNavigationReady, setNavigationReady] = useState(false);
+  const rootNavigation = useNavigation();
 
   useEffect(() => {
     if (loaded) {
@@ -37,25 +50,43 @@ export default function RootLayout() {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = rootNavigation?.addListener("state", (event) => {
+      // console.log("INFO: rootNavigation?.addListener('state')", event);
+      setNavigationReady(true);
+    });
+    return function cleanup() {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [rootNavigation]);
+
+  useEffect(() => {
+    if (!isNavigationReady) {
+      return;
+    }
+
+    if (!user) {
+      router.replace("/login");
+    } else {
+      router.replace("/");
+    }
+  }, [isNavigationReady, user, router]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!user) { 
-        router.replace('/login');
+      if (!user) {
+        router.replace("/login");
       } else {
-        router.replace('/');
+        router.replace("/");
       }
-    }, [user])
+    }, [user, router])
   );
-
-  // useEffect(() => {
-  //   auth.currentUser?.getIdToken().then((token) => console.log(token));
-  // }, []);
 
   if (!loaded) {
     return null;
   }
-
-  console.log(user);
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

@@ -44,6 +44,7 @@ function SignUp() {
         messageLeft: 10,
         // need to edit
         avatar: "blank",
+        nickname: values.nickname,
         hobbies: values.listHobbies,
         moods: [],
         thoughts: [],

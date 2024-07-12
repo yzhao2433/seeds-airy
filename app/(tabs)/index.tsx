@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,8 +6,25 @@ import {
   StyleSheet,
   ScrollView,
   ImageBackground,
+  TextInput,
 } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  getDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+import { NavigationContainer } from "@react-navigation/native";
+import { app } from "../firebase";
+import { auth } from "../firebase";
+
 import Icon from "react-native-vector-icons/MaterialIcons";
+
+import { Feather, Ionicons, AntDesign, Fontisto } from "@expo/vector-icons";
+
 <style>
   @import
   url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
@@ -19,7 +35,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const Home = () => {
   return (
     <ImageBackground
-      source={require("../../assets/images/sendCloud.png")}
+      source={require("../../assets/images/home_clouds.png")}
       style={styles.backgroundImage}
     >
       <ScrollView contentContainerStyle={styles.container}>
@@ -50,35 +66,45 @@ const Home = () => {
         </View>
 
         <Text style={styles.subHeader}>How are you feeling today?</Text>
-        <View style={styles.moodContainer}>
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.moodImage}
-          />
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.moodImage}
-          />
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.moodImage}
-          />
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.moodImage}
-          />
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.moodImage}
-          />
+        <View style={styles.moodWrapper}>
+          <View style={styles.moodContainer}>
+            <TouchableOpacity>
+              <View style={[styles.moodIcon, { backgroundColor: "#FFE785" }]}>
+                <Feather name="sun" size={28} color="white" />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <View style={[styles.moodIcon, { backgroundColor: "#BFD7EA" }]}>
+                <Ionicons name="partly-sunny-outline" size={28} color="white" />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <View style={[styles.moodIcon, { backgroundColor: "#6495CC" }]}>
+                <AntDesign name="cloudo" size={28} color="white" />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <View style={[styles.moodIcon, { backgroundColor: "#4F759B" }]}>
+                <Fontisto name="rain" size={28} color="white" />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <View style={[styles.moodIcon, { backgroundColor: "#0D1821" }]}>
+                <Ionicons name="thunderstorm-outline" size={28} color="white" />
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text style={styles.subHeader}>Write down your thoughts.</Text>
         <View style={styles.textAreaContainer}>
-          <Text style={styles.textArea}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          </Text>
+          <TextInput
+            style={[styles.textArea, { height: 50 }]}
+            multiline
+            numberOfLines={2}
+            placeholder="Write your thoughts here..."
+            placeholderTextColor="#555"
+          />
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button}>
               <Text style={styles.buttonText}>Skip</Text>
@@ -92,7 +118,7 @@ const Home = () => {
         <View style={styles.motivationContainer}>
           <View style={styles.horizontalContainer}>
             <Image
-              source={require("../../assets/images/react-logo.png")}
+              source={require("../../assets/images/sun_home_motivation.png")}
               style={styles.motivationImage}
             />
             <View style={styles.verticalContainer}>
@@ -119,128 +145,6 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 30,
-  },
-  subHeader: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginVertical: 10,
-    paddingVertical: 15,
-    textAlign: "center",
-  },
-  moodContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-  },
-  moodImage: {
-    width: 40,
-    height: 40,
-  },
-  textAreaContainer: {
-    backgroundColor: "#FFF",
-    padding: 20,
-    borderRadius: 20,
-    marginVertical: 0,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    opacity: 0.7,
-    zIndex: 1,
-  },
-  textArea: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 10,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  button: {
-    backgroundColor: "#FFD700",
-    padding: 10,
-    paddingVertical: 5,
-    borderRadius: 33,
-    zIndex: 2,
-    opacity: 100,
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  motivationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF5CF",
-    padding: 20,
-    borderRadius: 20,
-    marginVertical: 36,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    opacity: 0.91,
-  },
-  motivationImage: {
-    width: 80,
-    height: 80,
-  },
-  motivationTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    paddingBottom: 5,
-    color: "0D1821",
-  },
-  motivationText: {
-    fontSize: 13,
-    color: "#0D1821",
-  },
-  motivationButton: {
-    marginLeft: "auto",
-    backgroundColor: "#FFD700",
-    padding: 10,
-    paddingVertical: 5,
-    borderRadius: 33,
-  },
-  motivationButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  horizontalContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  verticalContainer: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  checkButton: {
-    padding: 10,
-    marginLeft: "auto",
-    backgroundColor: "#FFD700",
-    paddingVertical: 5,
-    borderRadius: 33,
-  },
-  checkButtonText: {
-    color: "#0D1821",
-    fontSize: 13,
-    textAlign: "center",
-    fontWeight: "bold",
   },
   profileContainer: {
     flexDirection: "row",
@@ -319,6 +223,139 @@ const styles = StyleSheet.create({
   profileStar: {
     width: 45,
     height: 45,
+  },
+  subHeader: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginVertical: 10,
+    paddingVertical: 15,
+    textAlign: "center",
+  },
+  moodWrapper: {
+    backgroundColor: "#FFF",
+    padding: 12,
+    borderRadius: 20,
+    marginVertical: 0,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    opacity: 0.7,
+    zIndex: 1,
+  },
+  moodContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  moodIcon: {
+    width: 48,
+    height: 50,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "white",
+  },
+  textAreaContainer: {
+    backgroundColor: "#FFF",
+    padding: 15,
+    borderRadius: 20,
+    marginVertical: 0,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    opacity: 0.7,
+    zIndex: 1,
+  },
+  textArea: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  button: {
+    backgroundColor: "#FFD700",
+    padding: 10,
+    paddingVertical: 5,
+    borderRadius: 33,
+    zIndex: 2,
+    opacity: 100,
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  motivationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5CF",
+    padding: 20,
+    borderRadius: 20,
+    marginVertical: 36,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    opacity: 0.91,
+  },
+  motivationImage: {
+    width: 90,
+    height: 90,
+  },
+  motivationTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    paddingBottom: 5,
+    color: "0D1821",
+  },
+  motivationText: {
+    fontSize: 13,
+    color: "#0D1821",
+  },
+  motivationButton: {
+    marginLeft: "auto",
+    backgroundColor: "#FFD700",
+    padding: 10,
+    paddingVertical: 5,
+    borderRadius: 33,
+  },
+  motivationButtonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  horizontalContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  verticalContainer: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  checkButton: {
+    padding: 10,
+    marginLeft: "auto",
+    backgroundColor: "#FFD700",
+    paddingVertical: 5,
+    borderRadius: 33,
+  },
+  checkButtonText: {
+    color: "#0D1821",
+    fontSize: 13,
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
 

@@ -27,6 +27,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    Montserrat: require("../assets/fonts/Montserrat-Light.ttf"),
+    Nunito: require("../assets/fonts/Nunito-Bold.ttf"),
   });
   const [user, setUser] = useState(auth.currentUser);
 

@@ -127,6 +127,7 @@ const ReceiveMessage = () => {
   const getMessages = async () => {
     try {
       const currUserRef = doc(usersRef, currUserId);
+      console.log("line 130: ", currUserRef, " this is the user id", currUserId)
       const currUserRefSnap = await getDoc(currUserRef);
       const currMessages = currUserRefSnap.data()?.messagesReceived || [];
       if (currMessages.length != 0) {
@@ -198,7 +199,7 @@ const getAvatarSource = (avatarId) => {
 const UserCard = ({ user, isSendEnabled }) => {
   const firstThought =
     user.thoughts && user.thoughts.length > 0
-      ? user.thoughts[0]
+      ? user.thoughts[0].thought
       : "No thoughts available";
 
   const avatarSource = getAvatarSource(user.avatar);

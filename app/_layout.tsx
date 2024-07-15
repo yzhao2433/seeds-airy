@@ -50,7 +50,7 @@ export default function RootLayout() {
       if (!navigationState?.key) return;
 
       if (!user) {
-        router.replace("/login");
+        router.replace("/starting");
       } else {
         router.replace("/");
       }
@@ -73,6 +73,7 @@ export default function RootLayout() {
           </Stack>
         ) : (
           <Stack>
+            <Stack.Screen name="starting" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="signup" options={{ headerShown: false }} />
           </Stack>

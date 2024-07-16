@@ -19,7 +19,7 @@ import { auth } from "./firebase";
 import { app } from "./firebase";
 import { Controller, useForm } from "react-hook-form";
 import { Link } from "expo-router";
-//yarn add react-native-responsive-screen
+//yarn add react-native-responsive-screen or npm install react-native-responsive-screen
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { SubmitHandler } from "react-hook-form";
 import globalFont from "../styles/globalfont";
@@ -111,7 +111,8 @@ function SignUp() {
       );
       const user = userCredential.user;
 
-      const userDocRef = doc(db, "user", user.uid); // Using "user" collection with UID as document ID
+      // Using "user" collection with UID as document ID
+      const userDocRef = doc(db, "user", user.uid);
       await setDoc(userDocRef, {
         email: data.email,
         nickname: data.nickname,

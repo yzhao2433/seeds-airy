@@ -1,6 +1,6 @@
 // npm install react-native-vector-icons
 // npm i --save-dev @types/react-native-vector-icons
-import { Tabs } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import React from "react";
 import { View, StyleSheet } from "react-native";
 

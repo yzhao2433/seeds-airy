@@ -22,6 +22,7 @@ import { app } from "../firebase";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 import { auth } from "../firebase";
 const db = getFirestore(app);
@@ -106,88 +107,6 @@ const addRecord = async (
     console.error("Error modifying message received array:", error);
   }
 };
-// ReceiveMessage component
-const ReceiveMessage = () => {
-  // Initializing sendersData to be an empty array
-  const [sendersData, setSendersData] = useState<
-    {
-      uid: string;
-      nickname: string;
-      mood: string;
-      hobbies: string;
-      message: string;
-    }[]
-  >([]);
-  const [isReceivedEnabled, setIsReceivedEnabled] = useState(true);
-
-  useEffect(() => {
-    getMessages();
-  }, []);
-
-  const getMessages = async () => {
-    try {
-      const currUserRef = doc(usersRef, currUserId);
-      console.log("line 130: ", currUserRef, " this is the user id", currUserId)
-      const currUserRefSnap = await getDoc(currUserRef);
-      const currMessages = currUserRefSnap.data()?.messagesReceived || [];
-      if (currMessages.length != 0) {
-        // Chat GPT Code used to modify this part: https://chatgpt.com/share/69be0e05-fd13-448e-8448-353b9d1df32b
-        const senderArray = await Promise.all(
-          currMessages.map(
-            async (sender: { senderID: string; message: string }) => {
-              const senderRef = doc(usersRef, sender.senderID);
-              const senderSnap = await getDoc(senderRef);
-              return {
-                uid: sender.senderID,
-                nickname: senderSnap.data()?.nickname,
-                mood: senderSnap.data()?.moods?.[0], // Accessing first mood if available
-                hobbies: senderSnap.data()?.hobbies,
-                message: sender.message,
-              };
-            }
-          )
-        );
-        console.log(senderArray);
-        setSendersData(senderArray);
-      }
-    } catch (error) {
-      console.log("haha no friends");
-    }
-  };
-  return (
-    <View>
-      {isReceivedEnabled ? (
-        <ScrollView style={styles.userList}>
-          {sendersData.map((sender) => (
-            <View key={sender.uid} style={styles.profileContainer}>
-              <UserCard key={sender.uid} user={sender} isSendEnabled={false} />
-              {/* <Text style={styles.profileUser}>{sender.nickname}</Text>
-              <Text style={styles.profileTag}>
-                Hobbies: {sender.hobbies}
-                Mood: {sender.mood}
-                Message From {sender.nickname}: {sender.message}
-              </Text>
-              <Button
-                title="Send"
-                onPress={() => {
-                  if (currUserId !== "") {
-                    addRecord(currUserId, sender.uid, "Hi");
-                    alert(`Message sent to ${sender.nickname}`);
-                  } else {
-                    alert("Message failed to deliver");
-                  }
-                }}
-              /> */}
-            </View>
-          ))}
-        </ScrollView>
-      ) : (
-        <ReceiveMessage />
-      )}
-    </View>
-    //{" "}
-  );
-};
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
@@ -228,7 +147,9 @@ const UserCard = ({ user, isSendEnabled }) => {
       </View>
       <TouchableOpacity style={styles.sendButton}>
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
-        <Text style={styles.sendButtonText}>Send</Text>
+        <Text style={styles.sendButtonText} onPress={() => addRecord}>
+          Send
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -304,55 +225,33 @@ const SendMessage = () => {
 
   return (
     <ImageBackground
-      source={
-        isSendEnabled
-          ? require("../../assets/images/sendCloud.png")
-          : require("../../assets/images/receiveCloud.png")
-      }
+      source={require("../../assets/images/sendCloud.png")}
       style={styles.background}
       resizeMode="cover"
     >
       <View style={styles.container}>
         <View style={styles.switchContainer}>
           <TouchableOpacity
-            style={[
-              styles.switchButton,
-              isSendEnabled ? styles.activeButton : styles.inactiveButton,
-            ]}
+            style={[styles.switchButton, styles.activeButton]}
             onPress={handleSendPress}
           >
-            <Text
-              style={isSendEnabled ? styles.activeText : styles.inactiveText}
-            >
-              Send
-            </Text>
+            <Text style={styles.activeText}>Send</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.switchButton,
-              !isSendEnabled ? styles.activeButton : styles.inactiveButton,
-            ]}
-            onPress={handleReceivePress}
+            style={[styles.switchButton, styles.inactiveButton]}
+            onPress={() => router.navigate("/received")}
           >
-            <Text
-              style={!isSendEnabled ? styles.activeText : styles.inactiveText}
-            >
-              Received
-            </Text>
+            <Text style={styles.inactiveText}>Received</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
           <Ionicons name="refresh" size={30} color="black" />
         </TouchableOpacity>
-        {isSendEnabled ? (
-          <ScrollView style={styles.userList}>
-            {usersData.map((user) => (
-              <UserCard key={user.id} user={user} isSendEnabled={true} />
-            ))}
-          </ScrollView>
-        ) : (
-          <ReceiveMessage />
-        )}
+        <ScrollView style={styles.userList}>
+          {usersData.map((user) => (
+            <UserCard key={user.id} user={user} isSendEnabled={true} />
+          ))}
+        </ScrollView>
       </View>
     </ImageBackground>
   );

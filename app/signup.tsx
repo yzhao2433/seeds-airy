@@ -23,6 +23,7 @@ import { Link } from "expo-router";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { SubmitHandler } from "react-hook-form";
 import globalFont from "../styles/globalfont";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 interface FormValues {
   email: string;
@@ -100,6 +101,8 @@ function SignUp() {
   >();
   const [isModalVisible, setModalVisible] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const { control, handleSubmit, formState } = useForm();
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -111,7 +114,7 @@ function SignUp() {
       );
       const user = userCredential.user;
 
-      const userDocRef = doc(db, "user", user.uid); // Using "user" collection with UID as document ID
+      const userDocRef = doc(db, "user", user.uid);
       await setDoc(userDocRef, {
         email: data.email,
         nickname: data.nickname,
@@ -126,6 +129,10 @@ function SignUp() {
     } catch (error) {
       console.error("Error creating user: ", error);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -163,20 +170,33 @@ function SignUp() {
         <Text style={[styles.fields, globalFont.Nunito]}>
           What is your password?
         </Text>
-        <Controller
-          control={control}
-          name="password"
-          rules={{ required: "Please enter a password" }}
-          render={({ field: { onBlur, onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              secureTextEntry
+        <View style={styles.passwordContainer}>
+          <Controller
+            control={control}
+            name="password"
+            rules={{ required: "Please enter a password" }}
+            render={({ field: { onBlur, onChange, value } }) => (
+              <TextInput
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                secureTextEntry={!showPassword}
+              />
+            )}
+          />
+
+          <TouchableOpacity
+            style={styles.visibilityButton}
+            onPress={togglePasswordVisibility}
+          >
+            <AntDesign
+              name={showPassword ? "eyeo" : "eye"}
+              size={24}
+              color="#ccc"
             />
-          )}
-        />
+          </TouchableOpacity>
+        </View>
         {typeof formState.errors.password?.message === "string" && (
           <Text style={styles.error}>{formState.errors.password?.message}</Text>
         )}
@@ -490,6 +510,17 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     alignSelf: "center",
     top: -5,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  visibilityButton: {
+    position: "absolute",
+    right: 35,
+    top: 19,
   },
 });
 

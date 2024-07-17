@@ -127,7 +127,12 @@ const ReceiveMessage = () => {
   const getMessages = async () => {
     try {
       const currUserRef = doc(usersRef, currUserId);
-      console.log("line 130: ", currUserRef, " this is the user id", currUserId)
+      console.log(
+        "line 130: ",
+        currUserRef,
+        " this is the user id",
+        currUserId
+      );
       const currUserRefSnap = await getDoc(currUserRef);
       const currMessages = currUserRefSnap.data()?.messagesReceived || [];
       if (currMessages.length != 0) {
@@ -191,7 +196,7 @@ const ReceiveMessage = () => {
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
-const getAvatarSource = (avatarId) => {
+const getAvatarSource = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
 };

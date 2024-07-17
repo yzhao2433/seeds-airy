@@ -257,15 +257,18 @@ const SendMessage = () => {
     setLoading(true);
 
     const usersRef = collection(db, "user");
+    const currUserId = auth.currentUser?.uid ?? "";
 
     //account for the fact that your own account cant show up in the messages
     try {
       const usersSnapshot = await getDocs(usersRef);
-      const users = usersSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        thoughts: doc.data().thoughts as string[],
-      }));
+      const users = usersSnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          thoughts: doc.data().thoughts as string[],
+        }))
+        .filter((user) => user.id !== currUserId);
 
       // Shuffling the array
       for (let i = users.length - 1; i > 0; i--) {

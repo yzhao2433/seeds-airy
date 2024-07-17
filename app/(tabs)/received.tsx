@@ -25,6 +25,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { auth } from "../firebase";
+import WritingMessage from "./writing";
 const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
@@ -82,31 +83,32 @@ const avatars = [
   { id: 50, source: require("../../assets/icons/axolotl.png") },
 ];
 
-const addRecord = async (
-  senderID: string,
-  receiverID: string,
-  message: string
-) => {
-  try {
-    const receiverRef = doc(usersRef, receiverID);
-    console.log(receiverRef);
-    const receiverSnap = await getDoc(receiverRef);
-    console.log(receiverSnap);
-    if (receiverSnap.exists()) {
-      const receiverCurrData = receiverSnap.data();
-      // If field is not found, then the default is an empty array
-      const currentArray = receiverCurrData?.messagesReceived || [];
-      const newMessage = { senderID: senderID, message: message };
-      console.log(newMessage);
-      // Copy over all but last entry of the array (which contains the oldest received message)
-      const updatedArray = [newMessage, ...currentArray.slice(0, -1)];
-      console.log(updatedArray);
-      await updateDoc(receiverRef, { messagesReceived: updatedArray });
-    }
-  } catch (error) {
-    console.error("Error modifying message received array:", error);
-  }
-};
+// const addRecord = async (
+//   senderID: string,
+//   receiverID: string,
+//   message: string
+// ) => {
+//   try {
+//     const receiverRef = doc(usersRef, receiverID);
+//     console.log(receiverRef);
+//     const receiverSnap = await getDoc(receiverRef);
+//     console.log(receiverSnap);
+//     if (receiverSnap.exists()) {
+//       const receiverCurrData = receiverSnap.data();
+//       // If field is not found, then the default is an empty array
+//       const currentArray = receiverCurrData?.messagesReceived || [];
+//       const newMessage = { senderID: senderID, message: message };
+//       console.log(newMessage);
+//       // Copy over all but last entry of the array (which contains the oldest received message)
+//       const updatedArray = [newMessage, ...currentArray.slice(0, -1)];
+//       console.log(updatedArray);
+//       await updateDoc(receiverRef, { messagesReceived: updatedArray });
+//     }
+//   } catch (error) {
+//     console.error("Error modifying message received array:", error);
+//   }
+// };
+
 // ReceiveMessage component
 const ReceiveMessage = () => {
   // Initializing sendersData to be an empty array
@@ -119,7 +121,6 @@ const ReceiveMessage = () => {
       message: string;
     }[]
   >([]);
-  const [isReceivedEnabled, setIsReceivedEnabled] = useState(true);
 
   useEffect(() => {
     getMessages();
@@ -208,18 +209,12 @@ const UserCard = ({ user, isSendEnabled }) => {
 
   const avatarSource = getAvatarSource(user.avatar);
 
-  const message = isSendEnabled ? "" : user.message;
   // If it is on the recieved screen, then user should have a message field for the passed in object
-  if (!isSendEnabled) {
-  }
 
   return (
     <View style={styles.profileContainer}>
       <View style={styles.profileImageContainer}>
         <Image source={avatarSource} style={styles.profileImage} />
-        <View style={styles.editIconContainer}>
-          <Icon name="edit" size={12} color="black" />
-        </View>
       </View>
       <View style={styles.profileInfoContainer}>
         <Text style={styles.profileUser}>{user.nickname}</Text>
@@ -227,12 +222,17 @@ const UserCard = ({ user, isSendEnabled }) => {
       </View>
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>
-          {isSendEnabled ? firstThought : message}
+          {isSendEnabled ? firstThought : user.message}
         </Text>
       </View>
       <TouchableOpacity style={styles.sendButton}>
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
-        <Text style={styles.sendButtonText} onPress={() => addRecord}>
+        <Text
+          style={styles.sendButtonText}
+          onPress={() =>
+            WritingMessage({ senderID: currUserId, receiverID: user.uid })
+          }
+        >
           Send
         </Text>
       </TouchableOpacity>

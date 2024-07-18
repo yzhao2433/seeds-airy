@@ -28,6 +28,7 @@ const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
 import { router } from "expo-router";
+import WritingMessage from "./writemessage";
 
 const avatars = [
   { id: 1, source: require("../../assets/icons/Bee.png") },
@@ -131,7 +132,15 @@ const UserCard = ({ user }) => {
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>{message}</Text>
       </View>
-      <TouchableOpacity style={styles.sendButton}>
+      <TouchableOpacity
+        style={styles.sendButton}
+        onPress={() =>
+          WritingMessage({
+            senderUID: auth.currentUser?.uid,
+            receiverUID: user.uid,
+          })
+        }
+      >
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
         <Text style={styles.sendButtonText}>Reply</Text>
       </TouchableOpacity>
@@ -157,54 +166,14 @@ const ReceiveMessage = () => {
     getMessages();
   }, []);
 
-  // const getMessages = async () => {
-  //   try {
-  //     const currUserRef = doc(usersRef, currUserId);
-
-  //     const currUserRefSnap = await getDoc(currUserRef);
-  //     const currMessages = currUserRefSnap.data()?.messagesReceived || [];
-  //     if (currMessages.length != 0) {
-  //       const senderArray = await Promise.all(
-  //         currMessages.map(
-  //           async (sender: { senderID: string; message: string }) => {
-  //             const senderRef = doc(usersRef, sender.senderID);
-  //             const senderSnap = await getDoc(senderRef);
-  //             return {
-  //               uid: sender.senderID,
-  //               nickname: senderSnap.data()?.nickname,
-  //               mood: senderSnap.data()?.moods?.[0].moodIcon,
-  //               hobbies: senderSnap.data()?.hobbies,
-  //               message: sender.message,
-  //             };
-  //           }
-  //         )
-  //       );
-  //       console.log(senderArray);
-  //       setSendersData(senderArray);
-  //     }
-  //   } catch (error) {
-  //     console.log("haha no friends");
-  //   }
-  // };
   const getMessages = async () => {
     try {
-      // // Reference to the current user document in Firestore
-      // const currUserRef = doc(usersRef, currUserId);
-
-      // // Fetch the current user document snapshot
-      // const currUserRefSnap = await getDoc(currUserRef);
-
-      // // Log the current user data
-      // console.log("Current User Data:", currUserRefSnap.data());
-
-      // Get the messagesReceived array from the user data, or an empty array if it doesn't exist
-      // const currMessages = currUserRefSnap.data()?.messagesReceived || [];
       const currUser = auth.currentUser?.uid ?? "";
       const currUserDocRef = doc(db, "user", currUser);
       const currUserDocSnap = await getDoc(currUserDocRef);
       const currUserData = currUserDocSnap.data();
 
-      const currMessages = currUserData.messagesReceived || [];
+      const currMessages = currUserData?.messagesReceived || [];
 
       // Check if there are any messages received
       if (currMessages.length !== 0) {

@@ -613,6 +613,7 @@ const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
 import { router } from "expo-router";
+import WritingMessage from "./writemessage";
 
 const avatars = [
   { id: 1, source: require("../../assets/icons/Bee.png") },
@@ -682,8 +683,6 @@ const UserCard = ({ user }) => {
 
   const avatarSource = getAvatarSource(user.avatar);
 
-  const message = user.message;
-
   return (
     <View style={styles.profileContainer}>
       <View style={styles.profileImageContainer}>
@@ -699,7 +698,15 @@ const UserCard = ({ user }) => {
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>{firstThought}</Text>
       </View>
-      <TouchableOpacity style={styles.sendButton}>
+      <TouchableOpacity
+        style={styles.sendButton}
+        onPress={() =>
+          WritingMessage({
+            senderUID: auth.currentUser?.uid,
+            receiverUID: user.uid,
+          })
+        }
+      >
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
         <Text style={styles.sendButtonText}>Send</Text>
       </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ImageBackground, Modal } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ImageBackground, Modal, FlatList} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import {
   getFirestore,
@@ -7,6 +7,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { app } from "../firebase";
 import { auth } from "../firebase";
@@ -19,8 +20,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 
 const db = getFirestore(app);
-const currUserId = auth.currentUser?.uid ?? "";
-const usersRef = collection(db, "user");
 
 const avatars = [
   { id: 1, source: require("../../assets/icons/Bee.png") },
@@ -81,6 +80,11 @@ const Profile = () => {
   const [selectedPost, setSelectedPost] = useState({});
   const [moods, setMoods] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<
+    { id: number; source: any } | undefined
+  >();
+  const [isavatarModalVisible, setavatarModalVisible] = useState(false);
+
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
@@ -90,34 +94,31 @@ const getAvatar = (avatarId: number) => {
 };
   
     useEffect(() => {
-      const fetchUserData = async () => {
-        try {
           const currentUser = auth.currentUser;
           if (currentUser) {
             const userDocRef = doc(db, "user", currentUser.uid);
-            console.log('Fetching user data...');
-            const userDocSnap = await getDoc(userDocRef);
+            console.log('Setting up real-time listener...');
   
-            if (userDocSnap.exists()) {
-              const userData = userDocSnap.data();
-              setUserData(userData);
-              setThoughts(userData.thoughts || []); // make set thoughts tgt
-              setMoods(userData.moods || []); // make set moods tgt
-
-              console.log('User data fetched:', userData);
-            } else {
-              console.log('User document not found');
-            }
+            const unsubscribe = onSnapshot(userDocRef, (doc) => {
+              if (doc.exists()) {
+                const userData = doc.data();
+                setUserData(userData);
+                setThoughts(userData.thoughts || []);
+                setMoods(userData.moods || []);
+                console.log('User data updated:', userData);
+              } else {
+                console.log('User document not found');
+              }
+            }, (error) => {
+              console.error('Error fetching user data:', error);
+            });
+      
+            // Clean up the listener on component unmount
+            return () => unsubscribe();
           } else {
             console.log('Current user not found');
           }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      };
-  
-      fetchUserData();
-    }, []);
+        }, []);
   
     console.log('Current user data:', userData);
 
@@ -157,6 +158,16 @@ const getAvatar = (avatarId: number) => {
     setModalVisible(false);
   };
 
+  const handleAvatarSelect = (item: { id: number; source: any }) => {
+    setSelectedAvatar(item);
+    setavatarModalVisible(false);
+  };
+  
+  // Function to handle modal close
+  const handleModalClose = () => {
+    setavatarModalVisible(false);
+  };
+
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
   return (
@@ -186,6 +197,50 @@ const getAvatar = (avatarId: number) => {
             <Text style={[styles.profilePoints, globalFont.Montserrat]}>13</Text>
             </View>
         </View>
+
+        <Text style={[styles.fields, globalFont.Nunito]}>
+          Choose your avatar!
+        </Text>
+        <TouchableOpacity
+  style={styles.dropdownContainer}
+  onPress={() => setavatarModalVisible(true)}
+>
+  {selectedAvatar ? (
+    <Image source={selectedAvatar.source} />
+  ) : (
+    <Text style={styles.avatarText}>Click to select an avatar!</Text>
+  )}
+</TouchableOpacity>
+<Modal
+  visible={isavatarModalVisible}
+  transparent={true}
+  animationType="slide"
+  onRequestClose={handleModalClose}
+>
+  <TouchableOpacity
+    style={styles.modalBackground}
+    activeOpacity={1}
+    onPressOut={handleModalClose}
+  >
+    <View style={styles.modalContainer}>
+      <FlatList
+        data={avatars}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => handleAvatarSelect(item)}
+            style={styles.avatarTouchable}
+          >
+            <Image source={item.source} style={styles.avatar} />
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={4}
+        contentContainerStyle={styles.flatListContent}
+      />
+    </View>
+  </TouchableOpacity>
+</Modal>
+       
 
         <View style={styles.whiteContainer}>
         <Text style={styles.title}>Mood Tracker</Text>
@@ -364,7 +419,69 @@ const styles = StyleSheet.create({
         width: 45,
         height: 45,
       },
-      
+      dropdownContainer: {
+        margin: 20,
+        padding: 10,
+        borderWidth: 1,
+        borderRadius: 5,
+        borderColor: "#BFD7EA",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "row",
+        width: "85%",
+        backgroundColor: "white",
+        alignSelf: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 3.84,
+      },
+      modalBackground: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      modalContainer: {
+        backgroundColor: "white",
+        width: "80%",
+        padding: 5,
+        borderRadius: 10,
+        maxHeight: "60%",
+        justifyContent: "space-evenly",
+      },
+      flatListContent: {
+        justifyContent: "space-between",
+        alignItems: "center",
+      },
+      avatar: {
+        width: 50,
+        height: 50,
+        margin: 5,
+      },
+      avatarText: {
+        fontFamily: "Montserrat",
+        color: "#ccc",
+        justifyContent: "flex-start",
+      },
+      avatarTouchable: {
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 5,
+        padding: 3,
+      },
+      fields: {
+        color: "#4F759B",
+        fontSize: 16,
+        fontFamily: "Nunito",
+        fontWeight: "700",
+        width: "85%",
+        alignSelf: "center",
+      },
+    
 
   moodEntry: {
     marginRight: 10,

@@ -16,6 +16,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { app } from "../firebase";
 import { auth } from "../firebase";
@@ -93,7 +94,6 @@ const getAvatar = (avatarId: number) => {
 };
 const Home = () => {
   const [userData, setUserData] = useState(null);
-  const [moodIcons, setMoodIcons] = useState([]);
   const [selectedMood, setSelectedMood] = useState(null);
   const [thought, setThought] = useState("");
   const [placeholder, setPlaceholder] = useState("Write your thoughts here...");
@@ -102,33 +102,36 @@ const Home = () => {
     skip: "#FFE785",
     submit: "#FFE785",
   });
+  const [messageLeft, setMessageLeft] = useState(0);
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          const userDocRef = doc(db, "user", currentUser.uid);
-          console.log("Fetching user data...");
-          const userDocSnap = await getDoc(userDocRef);
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const userDocRef = doc(db, "user", currentUser.uid);
+      console.log("Setting up real-time listener on Home Screen...");
 
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setUserData(userData);
-            console.log("User data fetched:", userData);
-          } else {
-            console.log("User document not found");
-          }
+      
+      const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setUserData(userData);
+          setSelectedMood(userData.moods || []);
+          setThought(userData.thoughts || []);
+          setMessageLeft(userData.messageLeft || 0);
+          console.log("User data updated:", userData);
         } else {
-          console.log("Current user not found");
+          console.log("User document not found");
         }
-      } catch (error) {
+      }, (error) => {
         console.error("Error fetching user data:", error);
-      }
-    };
+      });
 
-    fetchUserData();
+      // Clean up the listener on component unmount
+      return () => unsubscribe();
+    } else {
+      console.log("Current user not found");
+    }
   }, []);
 
   console.log("Current user data:", userData);
@@ -241,9 +244,6 @@ const Home = () => {
           <Text style={[styles.profileRanking, globalFont.Nunito]}>#25</Text>
           <View style={styles.profileImageContainer}>
             <Image source={avatarSource} style={styles.profileImage} />
-            <View style={styles.editIconContainer}>
-              <Icon name="edit" size={12} color="black" />
-            </View>
           </View>
           <View>
             <Text style={[styles.profileUser, globalFont.Montserrat]}>
@@ -389,17 +389,23 @@ const Home = () => {
               <Text style={[styles.motivationText, globalFont.Nunito]}>
                 Don't forget to send and check your messages!
               </Text>
-              <TouchableOpacity
-                style={styles.checkButton}
-                onPress={() => router.navigate("/message")}
-              >
-                <Text style={[styles.checkButtonText, globalFont.Nunito]}>
-                  Check
-                </Text>
-              </TouchableOpacity>
+                <View style={styles.row}>
+                  <Text style={globalFont.Nunito}>Messages Left: </Text>
+                  <View style={styles.circle}>
+                    <Text style={[styles.circleText, globalFont.Nunito]}>{messageLeft}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.checkButton}
+                    onPress={() => router.navigate("/message")}
+                  >
+                    <Text style={[styles.checkButtonText, globalFont.Nunito]}>
+                      Check
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </View>
-        </View>
       </ScrollView>
     </ImageBackground>
   );
@@ -503,7 +509,7 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito-Bold",
   },
   moodWrapper: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFF5CF",
     padding: 12,
     borderRadius: 20,
     marginVertical: 0,
@@ -536,7 +542,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   textAreaContainer: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#red",
     padding: 15,
     borderRadius: 20,
     marginVertical: 0,
@@ -632,6 +638,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     fontWeight: "bold",
+  },
+  messagesLeftContainer: {
+    padding: 16,
+    backgroundColor: '#fff', // Adjust the background color as needed
+    borderRadius: 8, // Adjust the border radius as needed
+    marginBottom: 16, // Adjust the margin as needed
+    alignItems: 'center', // Center items horizontally
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10, 
+    backgroundColor: '#007BFF', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  circleText: {
+    color: '#fff',
+    fontSize: 11,
   },
 });
 

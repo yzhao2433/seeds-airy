@@ -22,9 +22,101 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
+// const avatars = [
+//   { id: 1, source: require("../../assets/icons/Bee.png") },
+//   { id: 2, source: require("../../assets/icons/Cat.png") },
+//   { id: 3, source: require("../../assets/icons/Chick.png") },
+//   { id: 4, source: require("../../assets/icons/Crab.png") },
+//   { id: 5, source: require("../../assets/icons/Fox.png") },
+//   { id: 6, source: require("../../assets/icons/Frog.png") },
+//   { id: 7, source: require("../../assets/icons/Koala.png") },
+//   { id: 8, source: require("../../assets/icons/Lion.png") },
+//   { id: 9, source: require("../../assets/icons/Turtle.png") },
+//   { id: 10, source: require("../../assets/icons/Whale.png") },
+//   { id: 11, source: require("../../assets/icons/alligator.png") },
+//   { id: 12, source: require("../../assets/icons/ant.png") },
+//   { id: 13, source: require("../../assets/icons/anteater.png") },
+//   { id: 14, source: require("../../assets/icons/bird.png") },
+//   { id: 15, source: require("../../assets/icons/butterfly.png") },
+//   { id: 16, source: require("../../assets/icons/camel.png") },
+//   { id: 17, source: require("../../assets/icons/chameleon.png") },
+//   { id: 18, source: require("../../assets/icons/chicken.png") },
+//   { id: 19, source: require("../../assets/icons/cow.png") },
+//   { id: 20, source: require("../../assets/icons/dino.png") },
+//   { id: 21, source: require("../../assets/icons/dog.png") },
+//   { id: 22, source: require("../../assets/icons/dolphin.png") },
+//   { id: 23, source: require("../../assets/icons/elephant.png") },
+//   { id: 24, source: require("../../assets/icons/fish.png") },
+//   { id: 25, source: require("../../assets/icons/fox2.png") },
+//   { id: 26, source: require("../../assets/icons/giraffe.png") },
+//   { id: 27, source: require("../../assets/icons/hedgehog.png") },
+//   { id: 28, source: require("../../assets/icons/hippo.png") },
+//   { id: 29, source: require("../../assets/icons/jellyfish.png") },
+//   { id: 30, source: require("../../assets/icons/ladybug.png") },
+//   { id: 31, source: require("../../assets/icons/monkey.png") },
+//   { id: 32, source: require("../../assets/icons/mouse.png") },
+//   { id: 33, source: require("../../assets/icons/octopus.png") },
+//   { id: 34, source: require("../../assets/icons/owl.png") },
+//   { id: 35, source: require("../../assets/icons/parrot.png") },
+//   { id: 36, source: require("../../assets/icons/penguin.png") },
+//   { id: 37, source: require("../../assets/icons/pig.png") },
+//   { id: 38, source: require("../../assets/icons/pony.png") },
+//   { id: 39, source: require("../../assets/icons/seahorse.png") },
+//   { id: 40, source: require("../../assets/icons/seal.png") },
+//   { id: 41, source: require("../../assets/icons/shark.png") },
+//   { id: 42, source: require("../../assets/icons/sheep.png") },
+//   { id: 43, source: require("../../assets/icons/sloth.png") },
+//   { id: 44, source: require("../../assets/icons/snail.png") },
+//   { id: 45, source: require("../../assets/icons/snake.png") },
+//   { id: 46, source: require("../../assets/icons/squirrel.png") },
+//   { id: 47, source: require("../../assets/icons/stingray.png") },
+//   { id: 48, source: require("../../assets/icons/tiger.png") },
+//   { id: 49, source: require("../../assets/icons/panda.png") },
+//   { id: 50, source: require("../../assets/icons/axolotl.png") },
+// ];
+
+// const db = getFirestore(app);
+// const usersRef = collection(db, "user");
+
+// const defaultAvatar = require("../../assets/images/avatar.png");
+
+// const getAvatarSource = (avatarId) => {
+//   const avatar = avatars.find((avatar) => avatar.id === avatarId);
+//   return avatar ? avatar.source : defaultAvatar;
+// };
+
+// const UserCard = ({ receiverUID }) => {
+//   let firstThought = ""
+//   try{
+//     const receiverRef = doc(usersRef, receiverUID);
+//     const receiverSnap = await getDoc(receiverRef);
+//     if (receiverSnap.exists()) {
+//       const receiverCurrData = receiverSnap.data();
+//       firstThought = receiverCurrData.thoughts[0].thought || "User did not input a thought yet"
+//     }
+//   } catch (error) {
+//     console.error("Error modifying message received array:", error);
+//   }
+
+//   const avatarSource = getAvatarSource(user.avatar);
+
+//   return (
+//     <View style={styles.profileContainer}>
+//       <View style={styles.profileImageContainer}>
+//         <Image source={avatarSource} style={styles.profileImage} />
+//       </View>
+//       <View style={styles.profileInfoContainer}>
+//         <Text style={styles.profileUser}>{user.nickname}</Text>
+//         <Text style={styles.profileTag}>{user.hobbies}</Text>
+//       </View>
+//       <View style={styles.thoughtsContainer}>
+//         <Text style={styles.profileThought}>{firstThought}</Text>
+//       </View>
+//     </View>
+//   );
+// };
+
 const WritingMessage = ({ senderUID, receiverUID }) => {
-  const db = getFirestore(app);
-  const usersRef = collection(db, "user");
   //const [message, setMessage] = useState("");
   const message = "";
   console.log("senderID is ", senderUID);
@@ -60,38 +152,39 @@ const WritingMessage = ({ senderUID, receiverUID }) => {
   return (
     // <SafeAreaView>
     <ImageBackground
-      source={require("../../assets/images/receiveCloud.png")}
+      source={require("../../assets/images/writingCloud.png")}
       style={styles.background}
     >
-      <Modal onRequestClose={() => router.navigate("/message")}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}> Message to A Person</Text>
-          </View>
-          <View style={styles.modalContent}>
-            <TextInput
-              style={styles.inputTextBox}
-              placeholder="Please type the message you want to send to your fellow airies: "
-              placeholderTextColor={"#C0C0C0"}
-              multiline={true}
-              scrollEnabled={true}
-              spellCheck={true}
-              textAlign={"left"}
-              //   onChangeText={handleChange}
-              value={message}
-            ></TextInput>
-            <TouchableOpacity
-              style={styles.sendButton}
-              onPress={() => handleSend()}
-            >
-              <Text style={styles.sendButtonText}>Send</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.navigate("/message")}>
-              <Text style={styles.modalHeaderCloseText}>X</Text>
-            </TouchableOpacity>
-          </View>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.textTitle}> Message to A Person</Text>
+          <TouchableOpacity
+            style={styles.headerCloseButton}
+            onPress={() => router.navigate("/message")}
+          >
+            <Text style={styles.headerCloseText}>X</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
+        <View style={styles.inputSection}>
+          <TextInput
+            style={styles.inputTextBox}
+            placeholder="Please type the message you want to send to your fellow airies: "
+            placeholderTextColor={"#C0C0C0"}
+            multiline={true}
+            scrollEnabled={true}
+            spellCheck={true}
+            textAlign={"left"}
+            //   onChangeText={handleChange}
+            value={message}
+          ></TextInput>
+        </View>
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={() => handleSend()}
+        >
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
     </ImageBackground>
     // </SafeAreaView>
   );
@@ -104,53 +197,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  modalContainer: {
+  container: {
     flex: 1,
+    flexDirection: "column",
     backgroundColor: "#BFD7EA",
     width: "80%",
+    height: hp("50%"),
     padding: 5,
     borderRadius: 10,
-    maxHeight: "60%",
     justifyContent: "center",
     alignItems: "center",
+    position: "absolute",
+    top: "20%",
+    left: "10%",
+    borderWidth: 2,
+    borderColor: "#4F759B",
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 10,
+    // },
+    // shadowOpacity: 0.2,
+    // shadowRadius: 3.84,
   },
 
-  modalHeader: {
-    flexDirection: "row",
-  },
-
-  modalHeaderCloseText: {
-    textAlign: "center",
-    paddingLeft: 5,
-    paddingRight: 5,
-  },
-
-  modalTitle: {
-    color: "#0D1821",
-    fontSize: 20,
-    fontFamily: "Montserrat",
-    fontWeight: "600",
-    lineHeight: 20,
-    textAlign: "center",
-    marginTop: hp("3%"),
-    width: "60%",
-    alignSelf: "center",
-    marginBottom: hp("4%"),
-  },
-
-  modalContent: {
+  headerContainer: {
     flex: 1,
-    alignContent: "space-evenly",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
   },
-
-  inputTextBox: {
-    backgroundColor: "white",
-    color: "black",
-    fontSize: 12,
-    fontFamily: "Nunito",
-    fontWeight: "700",
-  },
-
   profileContainer: {
     flexDirection: "row",
     flex: 1,
@@ -180,6 +256,20 @@ const styles = StyleSheet.create({
     left: 20,
   },
 
+  editIconContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#F3F3F3",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+
   profileInfoContainer: {
     flex: 1,
     marginLeft: 80,
@@ -203,52 +293,48 @@ const styles = StyleSheet.create({
     lineHeight: 17.71,
   },
 
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  screen: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  profileHeader: {
-    position: "relative",
-    marginRight: 10,
-  },
-
-  profileImage: {
-    width: 55,
-    height: 55,
-    borderRadius: 50,
-  },
-
-  profileInfo: {
-    flex: 1,
-  },
-
-  thoughtsContainer: {
-    flex: 1,
+  headerCloseButton: {
+    textAlign: "right",
+    padding: 5,
     position: "absolute",
-    left: 20,
-    top: 75,
-    width: 302,
-    height: 51,
+    right: -30,
+    top: 5,
   },
 
-  profileThought: {
-    fontSize: 12.65,
+  headerCloseText: {
+    color: "#0D1821",
+    fontSize: 15,
+  },
+
+  textTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginVertical: 5,
+    paddingVertical: 15,
+    textAlign: "center",
+    fontFamily: "Nunito-Bold",
+  },
+
+  inputSection: {
+    flex: 6,
+    marginVertical: 10,
+  },
+
+  inputTextBox: {
+    flex: 1,
+    backgroundColor: "white",
     color: "black",
-    marginBottom: 10,
-    fontFamily: "Montserrat",
-    fontWeight: "400",
-    lineHeight: 17.71,
+    fontSize: 16,
+    fontFamily: "Nunito",
+    fontWeight: "700",
+    padding: 10,
+    marginLeft: 15,
+    marginRight: 15,
+    borderRadius: 5,
   },
 
   sendButton: {
+    flex: 1,
     backgroundColor: "#4F759B",
     borderRadius: 33.02,
     paddingVertical: 5,
@@ -270,14 +356,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 22.5,
     right: -4,
-  },
-
-  messageCircle: {
-    color: "white",
-    width: 20,
-    height: 20,
-    left: 1.89,
-    top: 2.38,
   },
 });
 

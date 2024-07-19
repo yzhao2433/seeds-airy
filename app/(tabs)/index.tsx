@@ -135,11 +135,26 @@ const Home = () => {
 
   const getTodayDate = () => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month index, so add 1
+    const day = String(today.getDate()).padStart(2, '0'); // getDate() returns the day of the month
+    return `${month}-${day}`;
+  };
+  
+  const getTodayDay = () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0'); 
+    return day;
+  };
+  
+  const getDayOfWeek = () => {
+    const today = new Date();
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return daysOfWeek[today.getDay()]; 
   };
 
   const updateUserMood = async (newMoodIcon) => {
-    const todayDate = getTodayDate();
+    const todayDate = getTodayDay();
+    const todayDayOfWeek = getDayOfWeek();
     const userId = auth.currentUser?.uid || "";
 
     console.log(userId);
@@ -151,6 +166,7 @@ const Home = () => {
 
       if (moodIcons.length > 0 && moodIcons[0].date === todayDate) {
         moodIcons[0].moodIcon = newMoodIcon;
+        moodIcons[0].dayOfWeek = todayDayOfWeek;
       } else {
         moodIcons.unshift({ date: todayDate, moodIcon: newMoodIcon });
         if (moodIcons.length > 7) {

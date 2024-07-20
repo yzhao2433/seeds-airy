@@ -92,6 +92,27 @@ const getAvatar = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
 };
+
+
+const getTodayDate = () => {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month index, so add 1
+  const day = String(today.getDate()).padStart(2, '0'); // getDate() returns the day of the month
+  return `${month}-${day}`;
+};
+
+const getTodayDay = () => {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, '0'); 
+  return day;
+};
+
+const getDayOfWeek = () => {
+  const today = new Date();
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return daysOfWeek[today.getDay()]; 
+};
+
 const Home = () => {
   const [userData, setUserData] = useState(null);
   const [selectedMood, setSelectedMood] = useState(null);
@@ -109,15 +130,18 @@ const Home = () => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       const userDocRef = doc(db, "user", currentUser.uid);
-      console.log("Setting up real-time listener on Home Screen...");
 
       
       const unsubscribe = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
           const userData = doc.data();
           setUserData(userData);
-          setSelectedMood(userData.moods || []);
-          setThought(userData.thoughts || []);
+
+          const todayDate = getTodayDay();
+          const todayMood = userData.moods?.find(mood => mood.date === todayDate);
+          setSelectedMood(todayMood ? todayMood.moodIcon : null);
+
+          setThought(userData.thoughts?.find(thought => thought.date === getTodayDate())?.thought || "");
           setMessageLeft(userData.messageLeft || 0);
           console.log("User data updated:", userData);
         } else {
@@ -127,7 +151,6 @@ const Home = () => {
         console.error("Error fetching user data:", error);
       });
 
-      // Clean up the listener on component unmount
       return () => unsubscribe();
     } else {
       console.log("Current user not found");
@@ -136,42 +159,23 @@ const Home = () => {
 
   console.log("Current user data:", userData);
 
-  const getTodayDate = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month index, so add 1
-    const day = String(today.getDate()).padStart(2, '0'); // getDate() returns the day of the month
-    return `${month}-${day}`;
-  };
-  
-  const getTodayDay = () => {
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0'); 
-    return day;
-  };
-  
-  const getDayOfWeek = () => {
-    const today = new Date();
-    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return daysOfWeek[today.getDay()]; 
-  };
-
   const updateUserMood = async (newMoodIcon) => {
     const todayDate = getTodayDay();
     const todayDayOfWeek = getDayOfWeek();
     const userId = auth.currentUser?.uid || "";
 
-    console.log(userId);
     try {
       const userDocRef = doc(db, "user", userId);
       const userDocSnap = await getDoc(userDocRef);
       const userData = userDocSnap.data();
       let moodIcons = userData.moods || [];
 
-      if (moodIcons.length > 0 && moodIcons[0].date === todayDate) {
-        moodIcons[0].moodIcon = newMoodIcon;
-        moodIcons[0].dayOfWeek = todayDayOfWeek;
+      const existingMood = moodIcons.find(mood => mood.date === todayDate);
+      if (existingMood) {
+          existingMood.moodIcon = newMoodIcon;
+        existingMood.dayOfWeek = todayDayOfWeek;
       } else {
-        moodIcons.unshift({ date: todayDate, moodIcon: newMoodIcon });
+        moodIcons.unshift({ date: todayDate, moodIcon: newMoodIcon,dayOfWeek: todayDayOfWeek });
         if (moodIcons.length > 7) {
           moodIcons.pop();
         }
@@ -264,81 +268,31 @@ const Home = () => {
           </View>
         </View>
 
+
         <Text style={[styles.subHeader, globalFont.Nunito]}>
           How are you feeling today?
         </Text>
         <View style={styles.moodWrapper}>
           <View style={styles.moodContainer}>
-            <TouchableOpacity onPress={() => updateUserMood(5)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 5 ? "#FFCD00" : "#FFE785",
-                    transform:
-                      selectedMood === 5 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Feather name="sun" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(4)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 4 ? "#70C0FF" : "#BFD7EA",
-                    transform:
-                      selectedMood === 4 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Ionicons name="partly-sunny-outline" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(3)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 3 ? "#005CC3" : "#6495CC",
-                    transform:
-                      selectedMood === 3 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <AntDesign name="cloudo" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(2)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 2 ? "#004D9A" : "#4F759B",
-                    transform:
-                      selectedMood === 2 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Fontisto name="rain" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(1)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 1 ? "#001526" : "#0D1821",
-                    transform:
-                      selectedMood === 1 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Ionicons name="thunderstorm-outline" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
+            {[5, 4, 3, 2, 1].map((mood) => (
+              <TouchableOpacity key={mood} onPress={() => updateUserMood(mood)}>
+                <View
+                  style={[
+                    styles.moodIcon,
+                    {
+                      backgroundColor: selectedMood === mood ? ["#FFCD00", "#70C0FF", "#005CC3", "#004D9A", "#001526"][5 - mood] : ["#FFE785", "#BFD7EA", "#6495CC", "#4F759B", "#0D1821"][5 - mood],
+                      transform: selectedMood === mood ? [{ scale: 1.2 }] : [{ scale: 1 }],
+                    },
+                  ]}
+                >
+                  {mood === 5 && <Feather name="sun" size={28} color="white" />}
+                  {mood === 4 && <Ionicons name="partly-sunny-outline" size={28} color="white" />}
+                  {mood === 3 && <AntDesign name="cloudo" size={28} color="white" />}
+                  {mood === 2 && <Fontisto name="rain" size={28} color="white" />}
+                  {mood === 1 && <Ionicons name="thunderstorm-outline" size={28} color="white" />}
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 

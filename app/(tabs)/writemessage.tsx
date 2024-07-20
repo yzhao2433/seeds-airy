@@ -8,6 +8,7 @@ import {
   ImageBackground,
   TextInput,
   Modal,
+  Image,
 } from "react-native";
 import {
   doc,
@@ -22,105 +23,124 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
-// const avatars = [
-//   { id: 1, source: require("../../assets/icons/Bee.png") },
-//   { id: 2, source: require("../../assets/icons/Cat.png") },
-//   { id: 3, source: require("../../assets/icons/Chick.png") },
-//   { id: 4, source: require("../../assets/icons/Crab.png") },
-//   { id: 5, source: require("../../assets/icons/Fox.png") },
-//   { id: 6, source: require("../../assets/icons/Frog.png") },
-//   { id: 7, source: require("../../assets/icons/Koala.png") },
-//   { id: 8, source: require("../../assets/icons/Lion.png") },
-//   { id: 9, source: require("../../assets/icons/Turtle.png") },
-//   { id: 10, source: require("../../assets/icons/Whale.png") },
-//   { id: 11, source: require("../../assets/icons/alligator.png") },
-//   { id: 12, source: require("../../assets/icons/ant.png") },
-//   { id: 13, source: require("../../assets/icons/anteater.png") },
-//   { id: 14, source: require("../../assets/icons/bird.png") },
-//   { id: 15, source: require("../../assets/icons/butterfly.png") },
-//   { id: 16, source: require("../../assets/icons/camel.png") },
-//   { id: 17, source: require("../../assets/icons/chameleon.png") },
-//   { id: 18, source: require("../../assets/icons/chicken.png") },
-//   { id: 19, source: require("../../assets/icons/cow.png") },
-//   { id: 20, source: require("../../assets/icons/dino.png") },
-//   { id: 21, source: require("../../assets/icons/dog.png") },
-//   { id: 22, source: require("../../assets/icons/dolphin.png") },
-//   { id: 23, source: require("../../assets/icons/elephant.png") },
-//   { id: 24, source: require("../../assets/icons/fish.png") },
-//   { id: 25, source: require("../../assets/icons/fox2.png") },
-//   { id: 26, source: require("../../assets/icons/giraffe.png") },
-//   { id: 27, source: require("../../assets/icons/hedgehog.png") },
-//   { id: 28, source: require("../../assets/icons/hippo.png") },
-//   { id: 29, source: require("../../assets/icons/jellyfish.png") },
-//   { id: 30, source: require("../../assets/icons/ladybug.png") },
-//   { id: 31, source: require("../../assets/icons/monkey.png") },
-//   { id: 32, source: require("../../assets/icons/mouse.png") },
-//   { id: 33, source: require("../../assets/icons/octopus.png") },
-//   { id: 34, source: require("../../assets/icons/owl.png") },
-//   { id: 35, source: require("../../assets/icons/parrot.png") },
-//   { id: 36, source: require("../../assets/icons/penguin.png") },
-//   { id: 37, source: require("../../assets/icons/pig.png") },
-//   { id: 38, source: require("../../assets/icons/pony.png") },
-//   { id: 39, source: require("../../assets/icons/seahorse.png") },
-//   { id: 40, source: require("../../assets/icons/seal.png") },
-//   { id: 41, source: require("../../assets/icons/shark.png") },
-//   { id: 42, source: require("../../assets/icons/sheep.png") },
-//   { id: 43, source: require("../../assets/icons/sloth.png") },
-//   { id: 44, source: require("../../assets/icons/snail.png") },
-//   { id: 45, source: require("../../assets/icons/snake.png") },
-//   { id: 46, source: require("../../assets/icons/squirrel.png") },
-//   { id: 47, source: require("../../assets/icons/stingray.png") },
-//   { id: 48, source: require("../../assets/icons/tiger.png") },
-//   { id: 49, source: require("../../assets/icons/panda.png") },
-//   { id: 50, source: require("../../assets/icons/axolotl.png") },
-// ];
+const avatars = [
+  { id: 1, source: require("../../assets/icons/Bee.png") },
+  { id: 2, source: require("../../assets/icons/Cat.png") },
+  { id: 3, source: require("../../assets/icons/Chick.png") },
+  { id: 4, source: require("../../assets/icons/Crab.png") },
+  { id: 5, source: require("../../assets/icons/Fox.png") },
+  { id: 6, source: require("../../assets/icons/Frog.png") },
+  { id: 7, source: require("../../assets/icons/Koala.png") },
+  { id: 8, source: require("../../assets/icons/Lion.png") },
+  { id: 9, source: require("../../assets/icons/Turtle.png") },
+  { id: 10, source: require("../../assets/icons/Whale.png") },
+  { id: 11, source: require("../../assets/icons/alligator.png") },
+  { id: 12, source: require("../../assets/icons/ant.png") },
+  { id: 13, source: require("../../assets/icons/anteater.png") },
+  { id: 14, source: require("../../assets/icons/bird.png") },
+  { id: 15, source: require("../../assets/icons/butterfly.png") },
+  { id: 16, source: require("../../assets/icons/camel.png") },
+  { id: 17, source: require("../../assets/icons/chameleon.png") },
+  { id: 18, source: require("../../assets/icons/chicken.png") },
+  { id: 19, source: require("../../assets/icons/cow.png") },
+  { id: 20, source: require("../../assets/icons/dino.png") },
+  { id: 21, source: require("../../assets/icons/dog.png") },
+  { id: 22, source: require("../../assets/icons/dolphin.png") },
+  { id: 23, source: require("../../assets/icons/elephant.png") },
+  { id: 24, source: require("../../assets/icons/fish.png") },
+  { id: 25, source: require("../../assets/icons/fox2.png") },
+  { id: 26, source: require("../../assets/icons/giraffe.png") },
+  { id: 27, source: require("../../assets/icons/hedgehog.png") },
+  { id: 28, source: require("../../assets/icons/hippo.png") },
+  { id: 29, source: require("../../assets/icons/jellyfish.png") },
+  { id: 30, source: require("../../assets/icons/ladybug.png") },
+  { id: 31, source: require("../../assets/icons/monkey.png") },
+  { id: 32, source: require("../../assets/icons/mouse.png") },
+  { id: 33, source: require("../../assets/icons/octopus.png") },
+  { id: 34, source: require("../../assets/icons/owl.png") },
+  { id: 35, source: require("../../assets/icons/parrot.png") },
+  { id: 36, source: require("../../assets/icons/penguin.png") },
+  { id: 37, source: require("../../assets/icons/pig.png") },
+  { id: 38, source: require("../../assets/icons/pony.png") },
+  { id: 39, source: require("../../assets/icons/seahorse.png") },
+  { id: 40, source: require("../../assets/icons/seal.png") },
+  { id: 41, source: require("../../assets/icons/shark.png") },
+  { id: 42, source: require("../../assets/icons/sheep.png") },
+  { id: 43, source: require("../../assets/icons/sloth.png") },
+  { id: 44, source: require("../../assets/icons/snail.png") },
+  { id: 45, source: require("../../assets/icons/snake.png") },
+  { id: 46, source: require("../../assets/icons/squirrel.png") },
+  { id: 47, source: require("../../assets/icons/stingray.png") },
+  { id: 48, source: require("../../assets/icons/tiger.png") },
+  { id: 49, source: require("../../assets/icons/panda.png") },
+  { id: 50, source: require("../../assets/icons/axolotl.png") },
+];
 
-// const db = getFirestore(app);
-// const usersRef = collection(db, "user");
+const db = getFirestore(app);
+const usersRef = collection(db, "user");
 
-// const defaultAvatar = require("../../assets/images/avatar.png");
+const defaultAvatar = require("../../assets/images/avatar.png");
 
-// const getAvatarSource = (avatarId) => {
-//   const avatar = avatars.find((avatar) => avatar.id === avatarId);
-//   return avatar ? avatar.source : defaultAvatar;
-// };
+const getAvatarSource = (avatarId) => {
+  const avatar = avatars.find((avatar) => avatar.id === avatarId);
+  return avatar ? avatar.source : defaultAvatar;
+};
 
-// const UserCard = ({ receiverUID }) => {
-//   let firstThought = ""
-//   try{
-//     const receiverRef = doc(usersRef, receiverUID);
-//     const receiverSnap = await getDoc(receiverRef);
-//     if (receiverSnap.exists()) {
-//       const receiverCurrData = receiverSnap.data();
-//       firstThought = receiverCurrData.thoughts[0].thought || "User did not input a thought yet"
-//     }
-//   } catch (error) {
-//     console.error("Error modifying message received array:", error);
-//   }
+const fetchReceiverData = async (receiverUID: string) => {
+  try {
+    const receiverRef = doc(usersRef, receiverUID);
+    console.log("line 92 ", receiverRef);
+    const receiverSnap = await getDoc(receiverRef);
+    console.log("line 94 ", receiverSnap);
+    if (receiverSnap.exists()) {
+      const receiverData = {
+        uid: receiverUID,
+        ...receiverSnap.data(),
+      };
+      console.log("line 100 ", receiverData);
+      return {
+        nickname: receiverData.nickname || "Unknown User",
+        firstThought:
+          receiverData.thoughts?.[0]?.thought ||
+          "User did not input a thought yet",
+        avatar: receiverData.avatar || 0,
+        messageToMe: receiverData.messagesReceived || "",
+        mood: receiverData.moods?.[0] || 0,
+      };
+    } else {
+      throw new Error("Receiver data not found");
+    }
+  } catch (error) {
+    console.error("Error getting the receiver data:", error);
+  }
+};
 
-//   const avatarSource = getAvatarSource(user.avatar);
+const UserCard = (receiverUID) => {
+  console.log("User Card received ", receiverUID);
+  const receiver = fetchReceiverData(receiverUID);
+  const avatarSource = getAvatarSource(receiver.avatar);
 
-//   return (
-//     <View style={styles.profileContainer}>
-//       <View style={styles.profileImageContainer}>
-//         <Image source={avatarSource} style={styles.profileImage} />
-//       </View>
-//       <View style={styles.profileInfoContainer}>
-//         <Text style={styles.profileUser}>{user.nickname}</Text>
-//         <Text style={styles.profileTag}>{user.hobbies}</Text>
-//       </View>
-//       <View style={styles.thoughtsContainer}>
-//         <Text style={styles.profileThought}>{firstThought}</Text>
-//       </View>
-//     </View>
-//   );
-// };
+  return (
+    <View style={styles.profileContainer}>
+      <View style={styles.profileImageContainer}>
+        <Image source={avatarSource} style={styles.profileImage} />
+      </View>
+      <View style={styles.profileInfoContainer}>
+        <Text style={styles.profileUser}>{receiver.nickname}</Text>
+        <Text style={styles.profileTag}>{receiver.hobbies}</Text>
+      </View>
+      <View style={styles.thoughtsContainer}>
+        <Text style={styles.profileThought}>{receiver.firstThought}</Text>
+      </View>
+    </View>
+  );
+};
 
-const WritingMessage = ({ senderUID, receiverUID }) => {
+export const WritingMessage = ({ senderUID, receiverUID }) => {
   //const [message, setMessage] = useState("");
   const message = "";
-  console.log("senderID is ", senderUID);
-  console.log("receiverID is ", receiverUID);
+  console.log("senderID is for writing message ", senderUID);
+  console.log("receiverID is for writing message ", receiverUID);
   const addRecord = async (senderID: string, receiverID: string) => {
     try {
       const receiverRef = doc(usersRef, receiverID);
@@ -134,6 +154,13 @@ const WritingMessage = ({ senderUID, receiverUID }) => {
         // prepend the current user to the receiver's list
         const updatedArray = [newMessage, ...currentArray.slice(0, -1)];
         await updateDoc(receiverRef, { messagesReceived: updatedArray });
+      }
+      const senderRef = doc(usersRef, senderID);
+      const senderSnap = await getDoc(senderRef);
+      if (senderSnap.exists()) {
+        const senderCurrData = receiverSnap.data();
+        const senderMessageLeft = senderCurrData?.messageLeft || 1;
+        await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
       }
     } catch (error) {
       console.error("Error modifying message received array:", error);
@@ -156,8 +183,9 @@ const WritingMessage = ({ senderUID, receiverUID }) => {
       style={styles.background}
     >
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.textTitle}> Message to A Person</Text>
+        <View style={styles.headerSection}>
+          <UserCard key={receiverUID} receiverUID={receiverUID} />
+          {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
           <TouchableOpacity
             style={styles.headerCloseButton}
             onPress={() => router.navigate("/message")}
@@ -178,12 +206,14 @@ const WritingMessage = ({ senderUID, receiverUID }) => {
             value={message}
           ></TextInput>
         </View>
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={() => handleSend()}
-        >
-          <Text style={styles.sendButtonText}>Send</Text>
-        </TouchableOpacity>
+        <View style={styles.sendSection}>
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={() => handleSend()}
+          >
+            <Text style={styles.sendButtonText}>Send</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ImageBackground>
     // </SafeAreaView>
@@ -202,7 +232,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     backgroundColor: "#BFD7EA",
     width: "80%",
-    height: hp("50%"),
+    height: hp("60%"),
     padding: 5,
     borderRadius: 10,
     justifyContent: "center",
@@ -212,21 +242,15 @@ const styles = StyleSheet.create({
     left: "10%",
     borderWidth: 2,
     borderColor: "#4F759B",
-    // shadowColor: "#000",
-    // shadowOffset: {
-    //   width: 0,
-    //   height: 10,
-    // },
-    // shadowOpacity: 0.2,
-    // shadowRadius: 3.84,
   },
 
-  headerContainer: {
-    flex: 1,
+  headerSection: {
+    flex: 3,
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
   },
+
   profileContainer: {
     flexDirection: "row",
     flex: 1,
@@ -234,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     paddingVertical: 13,
     paddingHorizontal: 10,
-    borderRadius: 20,
+    borderRadius: 5,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -242,10 +266,11 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
-    marginTop: 25,
+    // marginTop: 25,
     padding: 20,
-    width: 343,
-    height: 184,
+    marginLeft: 15,
+    marginRight: 15,
+    height: "50%",
     alignSelf: "center",
     position: "relative",
   },
@@ -293,6 +318,39 @@ const styles = StyleSheet.create({
     lineHeight: 17.71,
   },
 
+  profileHeader: {
+    position: "relative",
+    marginRight: 10,
+  },
+
+  profileImage: {
+    width: 55,
+    height: 55,
+    borderRadius: 50,
+  },
+
+  profileInfo: {
+    flex: 1,
+  },
+
+  thoughtsContainer: {
+    flex: 1,
+    position: "absolute",
+    left: 20,
+    top: 75,
+    width: 302,
+    height: 51,
+  },
+
+  profileThought: {
+    fontSize: 12.65,
+    color: "black",
+    marginBottom: 10,
+    fontFamily: "Montserrat",
+    fontWeight: "400",
+    lineHeight: 17.71,
+  },
+
   headerCloseButton: {
     textAlign: "right",
     padding: 5,
@@ -331,6 +389,11 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginRight: 15,
     borderRadius: 5,
+  },
+
+  sendSection: {
+    flex: 1,
+    alignSelf: "flex-end",
   },
 
   sendButton: {

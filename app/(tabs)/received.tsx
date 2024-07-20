@@ -119,6 +119,13 @@ const getAvatarSource = (avatarId: number) => {
 const UserCard = ({ user }) => {
   const avatarSource = getAvatarSource(user.avatar);
   const message = user.message;
+  const handleSend = () => {
+    router.navigate("/writemessage");
+    WritingMessage({
+      senderUID: auth.currentUser?.uid,
+      receiverUID: user.uid,
+    });
+  };
 
   return (
     <View style={styles.profileContainer}>
@@ -132,15 +139,7 @@ const UserCard = ({ user }) => {
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>{message}</Text>
       </View>
-      <TouchableOpacity
-        style={styles.sendButton}
-        onPress={() =>
-          WritingMessage({
-            senderUID: auth.currentUser?.uid,
-            receiverUID: user.uid,
-          })
-        }
-      >
+      <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
         <Text style={styles.sendButtonText}>Reply</Text>
       </TouchableOpacity>

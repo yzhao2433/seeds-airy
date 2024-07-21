@@ -119,13 +119,12 @@ const getAvatarSource = (avatarId: number) => {
 const UserCard = ({ user }) => {
   const avatarSource = getAvatarSource(user.avatar);
   const message = user.message;
-  const handleSend = () => {
-    router.navigate("/writemessage");
-    WritingMessage({
-      senderUID: auth.currentUser?.uid,
-      receiverUID: user.uid,
+
+  const handleSend = () =>
+    router.navigate({
+      pathname: "/writemessage",
+      params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
     });
-  };
 
   return (
     <View style={styles.profileContainer}>

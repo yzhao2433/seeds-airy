@@ -683,15 +683,11 @@ const UserCard = ({ user }) => {
 
   const avatarSource = getAvatarSource(user.avatar);
 
-  const handleSend = () => {
-    console.log("send message page sender", auth.currentUser?.uid);
-    console.log("send message page receiver", user.id);
-    router.navigate("/writemessage");
-    WritingMessage({
-      senderUID: auth.currentUser?.uid,
-      receiverUID: console.log("send message page ", auth.currentUser?.uid),
+  const handleSend = () =>
+    router.navigate({
+      pathname: "/writemessage",
+      params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
     });
-  };
 
   return (
     <View style={styles.profileContainer}>

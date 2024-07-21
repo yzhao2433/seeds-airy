@@ -19,7 +19,7 @@ import {
 } from "firebase/firestore";
 import { auth } from "../firebase";
 import { app } from "../firebase";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
@@ -136,12 +136,14 @@ const UserCard = (receiverUID) => {
   );
 };
 
-export const WritingMessage = ({ senderUID, receiverUID }) => {
-  //const [message, setMessage] = useState("");
-  const message = "";
+export const WritingMessage = () => {
+  const [message, setMessage] = useState("");
+  const params = useLocalSearchParams();
+  const { senderUID, receiverUID } = params;
+  //const message = "";
   console.log("senderID is for writing message ", senderUID);
   console.log("receiverID is for writing message ", receiverUID);
-  const addRecord = async (senderID: string, receiverID: string) => {
+  const addRecord = async (senderID, receiverID) => {
     try {
       const receiverRef = doc(usersRef, receiverID);
       const receiverSnap = await getDoc(receiverRef);
@@ -172,9 +174,9 @@ export const WritingMessage = ({ senderUID, receiverUID }) => {
     router.navigate("/message");
   };
 
-  //   const handleChange = (inputed) => {
-  //     setMessage(inputed);
-  //   };
+  const handleChange = (inputed) => {
+    setMessage(inputed);
+  };
 
   return (
     // <SafeAreaView>
@@ -202,7 +204,7 @@ export const WritingMessage = ({ senderUID, receiverUID }) => {
             scrollEnabled={true}
             spellCheck={true}
             textAlign={"left"}
-            //   onChangeText={handleChange}
+            onChangeText={handleChange}
             value={message}
           ></TextInput>
         </View>

@@ -115,7 +115,7 @@ const fetchReceiverData = async (receiverUID: string) => {
   }
 };
 
-const UserCard = (receiverUID) => {
+const UserCard = ({ receiverUID }) => {
   console.log("User Card received ", receiverUID);
   const receiver = fetchReceiverData(receiverUID);
   const avatarSource = getAvatarSource(receiver.avatar);
@@ -162,7 +162,10 @@ export const WritingMessage = () => {
       if (senderSnap.exists()) {
         const senderCurrData = receiverSnap.data();
         const senderMessageLeft = senderCurrData?.messageLeft || 1;
+        const numMessageSent = 10 - senderMessageLeft - 1;
+        const newScore = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
+        await updateDoc(senderRef, { score: newScore });
       }
     } catch (error) {
       console.error("Error modifying message received array:", error);
@@ -172,6 +175,10 @@ export const WritingMessage = () => {
   const handleSend = () => {
     addRecord(senderUID, receiverUID);
     router.navigate("/message");
+  };
+
+  const handleBlur = () => {
+    console.log("Exited type mode");
   };
 
   const handleChange = (inputed) => {
@@ -206,6 +213,7 @@ export const WritingMessage = () => {
             textAlign={"left"}
             onChangeText={handleChange}
             value={message}
+            onBlur={handleBlur}
           ></TextInput>
         </View>
         <View style={styles.sendSection}>

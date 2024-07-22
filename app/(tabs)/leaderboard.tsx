@@ -8,104 +8,349 @@ import {
   ImageBackground,
   Image,
   Button,
+  FlatList,
 } from "react-native";
+import { collection, getFirestore, onSnapshot, doc } from "firebase/firestore";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { Feather, Ionicons, AntDesign, Fontisto } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
+import globalFont from "../../styles/globalfont";
+import { app } from "../firebase";
+import { auth } from "../firebase";
+
+const db = getFirestore(app);
+const userCollection = collection(db, "user");
+const currUser = auth.currentUser?.uid;
+
+const avatars = [
+  { id: 1, source: require("../../assets/icons/Bee.png") },
+  { id: 2, source: require("../../assets/icons/Cat.png") },
+  { id: 3, source: require("../../assets/icons/Chick.png") },
+  { id: 4, source: require("../../assets/icons/Crab.png") },
+  { id: 5, source: require("../../assets/icons/Fox.png") },
+  { id: 6, source: require("../../assets/icons/Frog.png") },
+  { id: 7, source: require("../../assets/icons/Koala.png") },
+  { id: 8, source: require("../../assets/icons/Lion.png") },
+  { id: 9, source: require("../../assets/icons/Turtle.png") },
+  { id: 10, source: require("../../assets/icons/Whale.png") },
+  { id: 11, source: require("../../assets/icons/alligator.png") },
+  { id: 12, source: require("../../assets/icons/ant.png") },
+  { id: 13, source: require("../../assets/icons/anteater.png") },
+  { id: 14, source: require("../../assets/icons/bird.png") },
+  { id: 15, source: require("../../assets/icons/butterfly.png") },
+  { id: 16, source: require("../../assets/icons/camel.png") },
+  { id: 17, source: require("../../assets/icons/chameleon.png") },
+  { id: 18, source: require("../../assets/icons/chicken.png") },
+  { id: 19, source: require("../../assets/icons/cow.png") },
+  { id: 20, source: require("../../assets/icons/dino.png") },
+  { id: 21, source: require("../../assets/icons/dog.png") },
+  { id: 22, source: require("../../assets/icons/dolphin.png") },
+  { id: 23, source: require("../../assets/icons/elephant.png") },
+  { id: 24, source: require("../../assets/icons/fish.png") },
+  { id: 25, source: require("../../assets/icons/fox2.png") },
+  { id: 26, source: require("../../assets/icons/giraffe.png") },
+  { id: 27, source: require("../../assets/icons/hedgehog.png") },
+  { id: 28, source: require("../../assets/icons/hippo.png") },
+  { id: 29, source: require("../../assets/icons/jellyfish.png") },
+  { id: 30, source: require("../../assets/icons/ladybug.png") },
+  { id: 31, source: require("../../assets/icons/monkey.png") },
+  { id: 32, source: require("../../assets/icons/mouse.png") },
+  { id: 33, source: require("../../assets/icons/octopus.png") },
+  { id: 34, source: require("../../assets/icons/owl.png") },
+  { id: 35, source: require("../../assets/icons/parrot.png") },
+  { id: 36, source: require("../../assets/icons/penguin.png") },
+  { id: 37, source: require("../../assets/icons/pig.png") },
+  { id: 38, source: require("../../assets/icons/pony.png") },
+  { id: 39, source: require("../../assets/icons/seahorse.png") },
+  { id: 40, source: require("../../assets/icons/seal.png") },
+  { id: 41, source: require("../../assets/icons/shark.png") },
+  { id: 42, source: require("../../assets/icons/sheep.png") },
+  { id: 43, source: require("../../assets/icons/sloth.png") },
+  { id: 44, source: require("../../assets/icons/snail.png") },
+  { id: 45, source: require("../../assets/icons/snake.png") },
+  { id: 46, source: require("../../assets/icons/squirrel.png") },
+  { id: 47, source: require("../../assets/icons/stingray.png") },
+  { id: 48, source: require("../../assets/icons/tiger.png") },
+  { id: 49, source: require("../../assets/icons/panda.png") },
+  { id: 50, source: require("../../assets/icons/axolotl.png") },
+];
+const defaultAvatar = require("../../assets/images/avatar.png");
+const getAvatarSource = (avatarId) => {
+  const avatar = avatars.find((avatar) => avatar.id === avatarId);
+  return avatar ? avatar.source : defaultAvatar;
+};
+
+const UserCard = ({ user }) => {
+  const avatarSource = getAvatarSource(user.avatar);
+  return (
+    <View style={styles.profileContainer}>
+      <Text style={[styles.profileRanking, globalFont.Nunito]}>
+        {user.rank}
+      </Text>
+      <View style={styles.profileImageContainer}>
+        <Image source={avatarSource} style={styles.profileImage} />
+      </View>
+      <View>
+        <Text style={[styles.profileUser, globalFont.Montserrat]}>
+          {user ? user.nickname : "User"}
+        </Text>
+        <Text style={[styles.profileTag, globalFont.Montserrat]}>
+          #{user ? user.hobbies : "No hobbies to be displayed yet"}
+        </Text>
+      </View>
+      <View style={styles.pointContainer}>
+        <Image
+          source={require("../../assets/images/star.png")}
+          style={styles.profileStar}
+        />
+        <Text style={[styles.profilePoints, globalFont.Montserrat]}>
+          {user.userScore}
+        </Text>
+      </View>
+    </View>
+  );
+};
 
 const Leaderboard = () => {
-  return <Text> Competing is Bad </Text>;
+  const [top10Users, setTop10Users] = useState<
+    {
+      uid: string;
+      nickname: string;
+      avatar: number;
+      hobbies: string;
+      ranking: number;
+      score: number;
+    }[]
+  >([]);
+  const [allUserScore, setAllUserScore] = useState<
+    {
+      userUID: string;
+      score: number;
+      ranking: number;
+      activeDate: Array<string>;
+      nickname: string;
+      avatar: number;
+      hobbies: string;
+    }[]
+  >([]);
+  const [currUserRank, setCurrUserRank] = useState();
+  // this is used to prevent the usercard to be called before useEffect is even done
+  const [loading, setLoading] = useState(true);
+
+  // The purpose of this useEffect is to dynamically get the full list of user's
+  // and their information
+  useEffect(() => {
+    // place a listener to every document
+    // reference: https://firebase.google.com/docs/firestore/query-data/listen#node.js_2
+    const unsubscribe = onSnapshot(
+      userCollection,
+      (userSnapShot) => {
+        const tempUserScore = [];
+        if (userSnapShot.empty) {
+          console.log("No matching documents.");
+          return;
+        }
+        userSnapShot.forEach((user) => {
+          const userData = {
+            userUID: user.data().uid,
+            userScore: user.data().score,
+            activeDate: user.data().messageLastSent,
+            nickname: user.data().nickname,
+            hobbies: user.data().hobbies,
+            avatar: user.data().avatar,
+          };
+          console.log(userData);
+          tempUserScore.push(userData);
+          console.log("new user added ", userData);
+        });
+        // once scores are obtained, need to sort in decending order by score
+        tempUserScore.sort((userA, userB) => {
+          // Case 1: Scores are not tied
+          if (userA.score !== userB.score) {
+            return userB.score - userA.score;
+          } else if (userA.activeDate !== userB.activeDate) {
+            // Case 2: Scores are tied, look at the date and time
+            return userB.activeDate - userA.activeDate;
+          } else {
+            // Case 3: Scores and date are both tied, then look at name
+            const userAName = userA.nickname.toUpperCase();
+            const userBName = userB.nickname.toUpperCase();
+            return userAName > userBName ? 1 : -1;
+          }
+        });
+        // If user has index 0, then they are 1st on the leaderboard
+        tempUserScore.forEach((user, index) => {
+          user.rank = index + 1;
+        });
+        console.log("Sorted list of users ", tempUserScore);
+        setAllUserScore(tempUserScore);
+
+        // to get the information for the first 10 users
+
+        setTop10Users(tempUserScore.slice(0, 10));
+        console.log("top 10 is: ", tempUserScore.slice(0, 10));
+
+        // find the current user ranking
+        const currentUserRanking = tempUserScore.find(
+          (user) => user.userUID === auth.currentUser?.uid
+        );
+        console.log("current user ranking ", currentUserRanking);
+        console.log(currentUserRanking.rank);
+        setCurrUserRank(currentUserRanking);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error getting scores array", error);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  return (
+    <ImageBackground
+      source={require("../../assets/images/leaderboard_background.png")}
+      style={styles.backgroundImage}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={[styles.subHeader, globalFont.Nunito]}>Leaderboard</Text>
+        </View>
+
+        {/* Your Ranking Section */}
+        <View style={styles.yourRankingContainer}>
+          <View style={styles.yourRanking}>
+            <Text style={[styles.yourRankingText, globalFont.Nunito]}>
+              Your Ranking:
+            </Text>
+            <UserCard key={currUser} user={currUserRank} />
+          </View>
+        </View>
+        {/* Other Ranking section */}
+        <ScrollView contentContainerStyle={styles.otherRankingContainer}>
+          {top10Users.map((user) => (
+            <UserCard key={user.userUID} user={user} />
+          ))}
+        </ScrollView>
+      </ScrollView>
+    </ImageBackground>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  background: {
+  backgroundImage: {
     flex: 1,
     resizeMode: "cover",
-    justifyContent: "center",
   },
-  switchContainer: {
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 18,
+  },
+  headerContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 20,
-    width: "50%",
-    maxWidth: 300,
-    height: 26,
-    borderRadius: 10,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-  },
-  switchButton: {
-    flex: 1,
-    paddingVertical: 5,
     alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
+    justifyContent: "space-between",
+    marginVertical: 0,
+    paddingVertical: 15,
   },
-  activeButton: {
-    backgroundColor: "#FFFFFF",
-  },
-  inactiveButton: {
-    backgroundColor: "#f4f3f4",
-  },
-  activeText: {
+  subHeader: {
+    fontSize: 32,
+    fontWeight: "bold",
+    paddingVertical: 5,
+    textAlign: "center",
+    fontFamily: "Nunito-Bold",
     color: "black",
-    fontSize: 12,
-    fontFamily: "Nunito",
-    fontWeight: "700",
+    flex: 1,
   },
-  inactiveText: {
-    color: "#999",
-    fontSize: 12,
-    fontFamily: "Nunito",
-    fontWeight: "700",
+  yourRankingContainer: {
+    marginBottom: 30,
   },
-  userList: {
+  yourRankingText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "black",
+    marginBottom: 10,
+  },
+  yourRanking: {
+    backgroundColor: "#FFE785",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingBottom: 5,
     paddingHorizontal: 10,
   },
-  userContainer: {
-    marginTop: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 25,
-    width: 330,
-    height: 150,
-    flexShrink: 0,
-    backgroundColor: "white",
+  otherRankingContainer: {
+    backgroundColor: "#BFD7EA",
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingTop: 30,
+    paddingHorizontal: 10,
+    marginBottom: 30,
+    flexGrow: 1,
   },
-  nickName: {
+  profileContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    marginHorizontal: 10,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    marginBottom: 15,
+  },
+  profileImageContainer: {
+    position: "relative",
+  },
+  profileImage: {
+    width: 66,
+    height: 66,
+    borderRadius: 50,
+    marginRight: 10,
+  },
+  profileRanking: {
+    fontSize: 24,
     fontWeight: "bold",
+    marginRight: 9,
+    color: "#0C092A",
   },
-  userDetails: {
-    marginBottom: 5,
+  profileUser: {
+    fontSize: 17,
+    fontFamily: "Montserrat-Light",
   },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  profileTag: {
+    fontSize: 13,
+    color: "#858494",
+    fontStyle: "italic",
+    fontFamily: "Nunito-Bold",
   },
-  screen: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  refreshButton: {
+  profilePoints: {
+    marginLeft: "auto",
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "white",
     position: "absolute",
-    top: 30,
-    right: 35,
-    zIndex: 1,
-    marginBottom: 20,
   },
-  refreshIcon: {
-    width: 24,
-    height: 24,
+  pointContainer: {
+    position: "relative",
+    width: 45,
+    height: 45,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: "auto",
+  },
+  profileStar: {
+    width: 45,
+    height: 45,
   },
 });
 

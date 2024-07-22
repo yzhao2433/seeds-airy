@@ -16,6 +16,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { app } from "../firebase";
 import { auth } from "../firebase";
@@ -91,9 +92,28 @@ const getAvatar = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
 };
+
+const getTodayDate = () => {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
+  const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+  return `${month}-${day}`;
+};
+
+const getTodayDay = () => {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  return day;
+};
+
+const getDayOfWeek = () => {
+  const today = new Date();
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return daysOfWeek[today.getDay()];
+};
+
 const Home = () => {
   const [userData, setUserData] = useState(null);
-  const [moodIcons, setMoodIcons] = useState([]);
   const [selectedMood, setSelectedMood] = useState(null);
   const [thought, setThought] = useState("");
   const [placeholder, setPlaceholder] = useState("Write your thoughts here...");
@@ -102,73 +122,72 @@ const Home = () => {
     skip: "#FFE785",
     submit: "#FFE785",
   });
+  const [messageLeft, setMessageLeft] = useState(0);
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          const userDocRef = doc(db, "user", currentUser.uid);
-          console.log("Fetching user data...");
-          const userDocSnap = await getDoc(userDocRef);
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const userDocRef = doc(db, "user", currentUser.uid);
 
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
+      const unsubscribe = onSnapshot(
+        userDocRef,
+        (doc) => {
+          if (doc.exists()) {
+            const userData = doc.data();
             setUserData(userData);
-            console.log("User data fetched:", userData);
+
+            const todayDate = getTodayDay();
+            const todayMood = userData.moods?.find(
+              (mood) => mood.date === todayDate
+            );
+            setSelectedMood(todayMood ? todayMood.moodIcon : null);
+
+            setThought(
+              userData.thoughts?.find(
+                (thought) => thought.date === getTodayDate()
+              )?.thought || ""
+            );
+            setMessageLeft(userData.messageLeft || 0);
+            console.log("User data updated:", userData);
           } else {
             console.log("User document not found");
           }
-        } else {
-          console.log("Current user not found");
+        },
+        (error) => {
+          console.error("Error fetching user data:", error);
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
+      );
 
-    fetchUserData();
+      return () => unsubscribe();
+    } else {
+      console.log("Current user not found");
+    }
   }, []);
 
   console.log("Current user data:", userData);
-
-  const getTodayDate = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month index, so add 1
-    const day = String(today.getDate()).padStart(2, '0'); // getDate() returns the day of the month
-    return `${month}-${day}`;
-  };
-  
-  const getTodayDay = () => {
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0'); 
-    return day;
-  };
-  
-  const getDayOfWeek = () => {
-    const today = new Date();
-    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return daysOfWeek[today.getDay()]; 
-  };
 
   const updateUserMood = async (newMoodIcon) => {
     const todayDate = getTodayDay();
     const todayDayOfWeek = getDayOfWeek();
     const userId = auth.currentUser?.uid || "";
 
-    console.log(userId);
     try {
       const userDocRef = doc(db, "user", userId);
       const userDocSnap = await getDoc(userDocRef);
       const userData = userDocSnap.data();
       let moodIcons = userData.moods || [];
 
-      if (moodIcons.length > 0 && moodIcons[0].date === todayDate) {
-        moodIcons[0].moodIcon = newMoodIcon;
-        moodIcons[0].dayOfWeek = todayDayOfWeek;
+      const existingMood = moodIcons.find((mood) => mood.date === todayDate);
+      if (existingMood) {
+        existingMood.moodIcon = newMoodIcon;
+        existingMood.dayOfWeek = todayDayOfWeek;
       } else {
-        moodIcons.unshift({ date: todayDate, moodIcon: newMoodIcon });
+        moodIcons.unshift({
+          date: todayDate,
+          moodIcon: newMoodIcon,
+          dayOfWeek: todayDayOfWeek,
+        });
         if (moodIcons.length > 7) {
           moodIcons.pop();
         }
@@ -241,9 +260,6 @@ const Home = () => {
           <Text style={[styles.profileRanking, globalFont.Nunito]}>#25</Text>
           <View style={styles.profileImageContainer}>
             <Image source={avatarSource} style={styles.profileImage} />
-            <View style={styles.editIconContainer}>
-              <Icon name="edit" size={12} color="black" />
-            </View>
           </View>
           <View>
             <Text style={[styles.profileUser, globalFont.Montserrat]}>
@@ -269,76 +285,59 @@ const Home = () => {
         </Text>
         <View style={styles.moodWrapper}>
           <View style={styles.moodContainer}>
-            <TouchableOpacity onPress={() => updateUserMood(5)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 5 ? "#FFCD00" : "#FFE785",
-                    transform:
-                      selectedMood === 5 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Feather name="sun" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(4)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 4 ? "#70C0FF" : "#BFD7EA",
-                    transform:
-                      selectedMood === 4 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Ionicons name="partly-sunny-outline" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(3)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 3 ? "#005CC3" : "#6495CC",
-                    transform:
-                      selectedMood === 3 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <AntDesign name="cloudo" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(2)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 2 ? "#004D9A" : "#4F759B",
-                    transform:
-                      selectedMood === 2 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Fontisto name="rain" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => updateUserMood(1)}>
-              <View
-                style={[
-                  styles.moodIcon,
-                  {
-                    backgroundColor: selectedMood === 1 ? "#001526" : "#0D1821",
-                    transform:
-                      selectedMood === 1 ? [{ scale: 1.2 }] : [{ scale: 1 }],
-                  },
-                ]}
-              >
-                <Ionicons name="thunderstorm-outline" size={28} color="white" />
-              </View>
-            </TouchableOpacity>
+            {[5, 4, 3, 2, 1].map((mood) => (
+              <TouchableOpacity key={mood} onPress={() => updateUserMood(mood)}>
+                <View
+                  style={[
+                    styles.moodIcon,
+                    {
+                      backgroundColor:
+                        selectedMood === mood
+                          ? [
+                              "#FFCD00",
+                              "#70C0FF",
+                              "#005CC3",
+                              "#004D9A",
+                              "#001526",
+                            ][5 - mood]
+                          : [
+                              "#FFE785",
+                              "#BFD7EA",
+                              "#6495CC",
+                              "#4F759B",
+                              "#0D1821",
+                            ][5 - mood],
+                      transform:
+                        selectedMood === mood
+                          ? [{ scale: 1.2 }]
+                          : [{ scale: 1 }],
+                    },
+                  ]}
+                >
+                  {mood === 5 && <Feather name="sun" size={28} color="white" />}
+                  {mood === 4 && (
+                    <Ionicons
+                      name="partly-sunny-outline"
+                      size={28}
+                      color="white"
+                    />
+                  )}
+                  {mood === 3 && (
+                    <AntDesign name="cloudo" size={28} color="white" />
+                  )}
+                  {mood === 2 && (
+                    <Fontisto name="rain" size={28} color="white" />
+                  )}
+                  {mood === 1 && (
+                    <Ionicons
+                      name="thunderstorm-outline"
+                      size={28}
+                      color="white"
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -389,14 +388,22 @@ const Home = () => {
               <Text style={[styles.motivationText, globalFont.Nunito]}>
                 Don't forget to send and check your messages!
               </Text>
-              <TouchableOpacity
-                style={styles.checkButton}
-                onPress={() => router.navigate("/message")}
-              >
-                <Text style={[styles.checkButtonText, globalFont.Nunito]}>
-                  Check
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.row}>
+                <Text style={globalFont.Nunito}>Messages Left: </Text>
+                <View style={styles.circle}>
+                  <Text style={[styles.circleText, globalFont.Nunito]}>
+                    {messageLeft}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.checkButton}
+                  onPress={() => router.navigate("/message")}
+                >
+                  <Text style={[styles.checkButtonText, globalFont.Nunito]}>
+                    Check
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -503,7 +510,7 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito-Bold",
   },
   moodWrapper: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFF5CF",
     padding: 12,
     borderRadius: 20,
     marginVertical: 0,
@@ -536,7 +543,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   textAreaContainer: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#red",
     padding: 15,
     borderRadius: 20,
     marginVertical: 0,
@@ -633,369 +640,30 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
+  messagesLeftContainer: {
+    padding: 16,
+    backgroundColor: "#fff", // Adjust the background color as needed
+    borderRadius: 8, // Adjust the border radius as needed
+    marginBottom: 16, // Adjust the margin as needed
+    alignItems: "center", // Center items horizontally
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#007BFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  circleText: {
+    color: "#fff",
+    fontSize: 11,
+  },
 });
 
 export default Home;
-
-// import {
-//   View,
-//   Text,
-//   Image,
-//   TouchableOpacity,
-//   StyleSheet,
-//   ScrollView,
-//   ImageBackground,
-//   TextInput,
-// } from "react-native";
-// import React, { useState, useEffect } from "react";
-// import {
-//   getFirestore,
-//   collection,
-//   getDocs,
-//   getDoc,
-//   doc,
-//   updateDoc,
-// } from "firebase/firestore";
-// import { NavigationContainer } from "@react-navigation/native";
-// import { app } from "../firebase";
-// import { auth } from "../firebase";
-
-// import Icon from "react-native-vector-icons/MaterialIcons";
-
-// import { Feather, Ionicons, AntDesign, Fontisto } from "@expo/vector-icons";
-
-// <style>
-//   @import
-//   url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
-//   @import
-//   url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-// </style>;
-
-// const Home = () => {
-//   return (
-//     <ImageBackground
-//       source={require("../../assets/images/home_clouds.png")}
-//       style={styles.backgroundImage}
-//     >
-//       <ScrollView contentContainerStyle={styles.container}>
-//         <Text style={styles.subHeader}>Welcome back, sadbird102!</Text>
-
-//         <View style={styles.profileContainer}>
-//           <Text style={styles.profileRanking}>#25</Text>
-//           <View style={styles.profileImageContainer}>
-//             <Image
-//               source={require("../../assets/images/avatar.png")}
-//               style={styles.profileImage}
-//             />
-//             <View style={styles.editIconContainer}>
-//               <Icon name="edit" size={12} color="black" />
-//             </View>
-//           </View>
-//           <View>
-//             <Text style={styles.profileUser}>Sadbird102</Text>
-//             <Text style={styles.profileTag}>#dance</Text>
-//           </View>
-//           <View style={styles.pointContainer}>
-//             <Image
-//               source={require("../../assets/images/star.png")}
-//               style={styles.profileStar}
-//             />
-//             <Text style={styles.profilePoints}>13</Text>
-//           </View>
-//         </View>
-
-//         <Text style={styles.subHeader}>How are you feeling today?</Text>
-//         <View style={styles.moodWrapper}>
-//           <View style={styles.moodContainer}>
-//             <TouchableOpacity>
-//               <View style={[styles.moodIcon, { backgroundColor: "#FFE785" }]}>
-//                 <Feather name="sun" size={28} color="white" />
-//               </View>
-//             </TouchableOpacity>
-//             <TouchableOpacity>
-//               <View style={[styles.moodIcon, { backgroundColor: "#BFD7EA" }]}>
-//                 <Ionicons name="partly-sunny-outline" size={28} color="white" />
-//               </View>
-//             </TouchableOpacity>
-//             <TouchableOpacity>
-//               <View style={[styles.moodIcon, { backgroundColor: "#6495CC" }]}>
-//                 <AntDesign name="cloudo" size={28} color="white" />
-//               </View>
-//             </TouchableOpacity>
-//             <TouchableOpacity>
-//               <View style={[styles.moodIcon, { backgroundColor: "#4F759B" }]}>
-//                 <Fontisto name="rain" size={28} color="white" />
-//               </View>
-//             </TouchableOpacity>
-//             <TouchableOpacity>
-//               <View style={[styles.moodIcon, { backgroundColor: "#0D1821" }]}>
-//                 <Ionicons name="thunderstorm-outline" size={28} color="white" />
-//               </View>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-
-//         <Text style={styles.subHeader}>Write down your thoughts.</Text>
-//         <View style={styles.textAreaContainer}>
-//           <TextInput
-//             style={[styles.textArea, { height: 50 }]}
-//             multiline
-//             numberOfLines={2}
-//             placeholder="Write your thoughts here..."
-//             placeholderTextColor="#555"
-//           />
-//           <View style={styles.buttonContainer}>
-//             <TouchableOpacity style={styles.button}>
-//               <Text style={styles.buttonText}>Skip</Text>
-//             </TouchableOpacity>
-//             <TouchableOpacity style={styles.button}>
-//               <Text style={styles.buttonText}>Submit</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-
-//         <View style={styles.motivationContainer}>
-//           <View style={styles.horizontalContainer}>
-//             <Image
-//               source={require("../../assets/images/sun_home_motivation.png")}
-//               style={styles.motivationImage}
-//             />
-//             <View style={styles.verticalContainer}>
-//               <Text style={styles.motivationTitle}>Daily Motivation</Text>
-//               <Text style={styles.motivationText}>
-//                 Don't forget to send and check your messages!
-//               </Text>
-//               <TouchableOpacity style={styles.checkButton}>
-//                 <Text style={styles.checkButtonText}>Check</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         </View>
-//       </ScrollView>
-//     </ImageBackground>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   backgroundImage: {
-//     flex: 1,
-//     resizeMode: "cover",
-//   },
-//   container: {
-//     flexGrow: 1,
-//     paddingHorizontal: 30,
-//   },
-//   profileContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     backgroundColor: "#FFF",
-//     paddingVertical: 13,
-//     paddingHorizontal: 10,
-//     borderRadius: 20,
-//     shadowColor: "#000",
-//     shadowOffset: {
-//       width: 0,
-//       height: 4,
-//     },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 3.84,
-//   },
-//   profileImageContainer: {
-//     position: "relative",
-//   },
-//   editIconContainer: {
-//     position: "absolute",
-//     width: 20,
-//     height: 20,
-//     bottom: 0,
-//     right: 7,
-//     borderRadius: 5,
-//     backgroundColor: "#F3F3F3",
-//     justifyContent: "center",
-//     alignItems: "center",
-//     borderWidth: 1,
-//     borderColor: "#ddd",
-//   },
-//   editIcon: {
-//     position: "absolute",
-//     width: 20,
-//     height: 20,
-//     bottom: 0,
-//     right: 7,
-//     color: "#4285F4",
-//   },
-//   profileImage: {
-//     width: 66,
-//     height: 66,
-//     borderRadius: 50,
-//     marginRight: 10,
-//   },
-//   profileRanking: {
-//     fontSize: 24,
-//     fontWeight: "bold",
-//     marginRight: 9,
-//     color: "0C092A",
-//   },
-//   profileUser: {
-//     fontSize: 17,
-//   },
-//   profileTag: {
-//     fontSize: 13,
-//     color: "#858494",
-//     fontStyle: "italic",
-//   },
-//   profilePoints: {
-//     marginLeft: "auto",
-//     fontSize: 14,
-//     fontWeight: "bold",
-//     color: "white",
-//     position: "absolute",
-//   },
-//   pointContainer: {
-//     position: "relative",
-//     width: 45,
-//     height: 45,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     marginLeft: "auto",
-//   },
-//   profileStar: {
-//     width: 45,
-//     height: 45,
-//   },
-//   subHeader: {
-//     fontSize: 24,
-//     fontWeight: "bold",
-//     marginVertical: 10,
-//     paddingVertical: 15,
-//     textAlign: "center",
-//   },
-//   moodWrapper: {
-//     backgroundColor: "#FFF",
-//     padding: 12,
-//     borderRadius: 20,
-//     marginVertical: 0,
-//     shadowColor: "#000",
-//     shadowOffset: {
-//       width: 0,
-//       height: 4,
-//     },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 3.84,
-//     opacity: 0.7,
-//     zIndex: 1,
-//   },
-//   moodContainer: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//   },
-//   moodIcon: {
-//     width: 48,
-//     height: 50,
-//     borderRadius: 10,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     borderWidth: 1,
-//     borderColor: "white",
-//   },
-//   textAreaContainer: {
-//     backgroundColor: "#FFF",
-//     padding: 15,
-//     borderRadius: 20,
-//     marginVertical: 0,
-//     shadowColor: "#000",
-//     shadowOffset: {
-//       width: 0,
-//       height: 4,
-//     },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 3.84,
-//     opacity: 0.7,
-//     zIndex: 1,
-//   },
-//   textArea: {
-//     fontSize: 14,
-//     color: "#555",
-//     marginBottom: 10,
-//   },
-//   buttonContainer: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//   },
-//   button: {
-//     backgroundColor: "#FFD700",
-//     padding: 10,
-//     paddingVertical: 5,
-//     borderRadius: 33,
-//     zIndex: 2,
-//     opacity: 100,
-//   },
-//   buttonText: {
-//     fontSize: 14,
-//     fontWeight: "bold",
-//   },
-//   motivationContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     backgroundColor: "#FFF5CF",
-//     padding: 20,
-//     borderRadius: 20,
-//     marginVertical: 36,
-//     shadowColor: "#000",
-//     shadowOffset: {
-//       width: 0,
-//       height: 4,
-//     },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 3.84,
-//     opacity: 0.91,
-//   },
-//   motivationImage: {
-//     width: 90,
-//     height: 90,
-//   },
-//   motivationTitle: {
-//     fontSize: 20,
-//     fontWeight: "bold",
-//     paddingBottom: 5,
-//     color: "0D1821",
-//   },
-//   motivationText: {
-//     fontSize: 13,
-//     color: "#0D1821",
-//   },
-//   motivationButton: {
-//     marginLeft: "auto",
-//     backgroundColor: "#FFD700",
-//     padding: 10,
-//     paddingVertical: 5,
-//     borderRadius: 33,
-//   },
-//   motivationButtonText: {
-//     fontSize: 14,
-//     fontWeight: "bold",
-//   },
-//   horizontalContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//   },
-//   verticalContainer: {
-//     flex: 1,
-//     marginLeft: 10,
-//   },
-//   checkButton: {
-//     padding: 10,
-//     marginLeft: "auto",
-//     backgroundColor: "#FFD700",
-//     paddingVertical: 5,
-//     borderRadius: 33,
-//   },
-//   checkButtonText: {
-//     color: "#0D1821",
-//     fontSize: 13,
-//     textAlign: "center",
-//     fontWeight: "bold",
-//   },
-// });
-
-// export default Home;

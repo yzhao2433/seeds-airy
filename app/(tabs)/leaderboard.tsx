@@ -163,11 +163,12 @@ const Leaderboard = () => {
           tempUserScore.push(userData);
           console.log("new user added ", userData);
         });
+        console.log("Score before:", tempUserScore);
         // once scores are obtained, need to sort in decending order by score
         tempUserScore.sort((userA, userB) => {
           // Case 1: Scores are not tied
-          if (userA.score !== userB.score) {
-            return userB.score - userA.score;
+          if (userA.userScore !== userB.userScore) {
+            return userB.userScore - userA.userScore;
           } else if (userA.activeDate !== userB.activeDate) {
             // Case 2: Scores are tied, look at the date and time
             return userB.activeDate - userA.activeDate;
@@ -178,6 +179,8 @@ const Leaderboard = () => {
             return userAName > userBName ? 1 : -1;
           }
         });
+
+        console.log("Score After:", tempUserScore);
         // If user has index 0, then they are 1st on the leaderboard
         tempUserScore.forEach((user, index) => {
           user.rank = index + 1;

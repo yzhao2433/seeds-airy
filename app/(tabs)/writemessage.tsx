@@ -171,7 +171,11 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
         const newMessage = { senderID, message };
         // Remove the last user (the earliest person who sent the message) and
         // prepend the current user to the receiver's list
-        const updatedArray = [newMessage, ...currentArray.slice(0, -1)];
+        if (currentArray.length == 5) {
+          var updatedArray = [newMessage, ...currentArray.slice(0, -1)];
+        } else {
+          var updatedArray = [newMessage, ...currentArray];
+        }
         await updateDoc(receiverRef, { messagesReceived: updatedArray });
       }
       const senderRef = doc(usersRef, senderID);

@@ -153,7 +153,7 @@ const ReceiveMessage = () => {
     {
       uid: string;
       nickname: string;
-      mood: string;
+      // mood: string;
       hobbies: string;
       message: string;
       avatar: number;
@@ -184,7 +184,7 @@ const ReceiveMessage = () => {
             return {
               uid: sender.senderID,
               nickname: senderSnap.data()?.nickname,
-              mood: senderSnap.data()?.moods?.[0].moodIcon,
+              // mood: senderSnap.data()?.moods?.[0].moodIcon,
               hobbies: senderSnap.data()?.hobbies,
               message: sender.message,
               avatar: senderSnap.data()?.avatar,

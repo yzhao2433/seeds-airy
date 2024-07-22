@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller } from "react-hook-form";
 import {
   View,
@@ -9,6 +9,8 @@ import {
   TextInput,
   Modal,
   Image,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import {
   doc,
@@ -22,6 +24,8 @@ import { app } from "../firebase";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { AntDesign } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 
 const avatars = [
   { id: 1, source: require("../../assets/icons/Bee.png") },
@@ -106,6 +110,7 @@ const fetchReceiverData = async (receiverUID: string) => {
         avatar: receiverData.avatar || 0,
         messageToMe: receiverData.messagesReceived || "",
         mood: receiverData.moods?.[0] || 0,
+        hobbies: receiverData.hobbies || "",
       };
     } else {
       throw new Error("Receiver data not found");
@@ -116,8 +121,20 @@ const fetchReceiverData = async (receiverUID: string) => {
 };
 
 const UserCard = ({ receiverUID }) => {
-  console.log("User Card received ", receiverUID);
-  const receiver = fetchReceiverData(receiverUID);
+  // console.log("User Card received ", receiverUID);
+  const [receiver, setReceiver] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchReceiverData(receiverUID);
+      setReceiver(data);
+    };
+    fetchData();
+  }, [receiverUID]);
+
+  if (!receiver) {
+    return <Text>Loading...</Text>; // or a loading spinner
+  }
+
   const avatarSource = getAvatarSource(receiver.avatar);
 
   return (
@@ -136,10 +153,10 @@ const UserCard = ({ receiverUID }) => {
   );
 };
 
-export const WritingMessage = () => {
+export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
   const [message, setMessage] = useState("");
   const params = useLocalSearchParams();
-  const { senderUID, receiverUID } = params;
+  // const { senderUID, receiverUID, onClose } = params;
   //const message = "";
   console.log("senderID is for writing message ", senderUID);
   console.log("receiverID is for writing message ", receiverUID);
@@ -174,7 +191,7 @@ export const WritingMessage = () => {
 
   const handleSend = () => {
     addRecord(senderUID, receiverUID);
-    router.navigate("/message");
+    onClose();
   };
 
   const handleBlur = () => {
@@ -187,20 +204,21 @@ export const WritingMessage = () => {
 
   return (
     // <SafeAreaView>
-    <ImageBackground
-      source={require("../../assets/images/writingCloud.png")}
-      style={styles.background}
-    >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {/* <ImageBackground
+        source={require("../../assets/images/writingCloud.png")}
+        style={styles.background}
+      > */}
       <View style={styles.container}>
         <View style={styles.headerSection}>
           <UserCard key={receiverUID} receiverUID={receiverUID} />
           {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
-          <TouchableOpacity
-            style={styles.headerCloseButton}
-            onPress={() => router.navigate("/message")}
-          >
-            <Text style={styles.headerCloseText}>X</Text>
+          <TouchableOpacity style={styles.headerCloseButton} onPress={onClose}>
+            <AntDesign name="close" size={30} color="black" />
           </TouchableOpacity>
+        </View>
+        <View style={styles.you}>
+          <Text> You: </Text>
         </View>
         <View style={styles.inputSection}>
           <TextInput
@@ -221,11 +239,17 @@ export const WritingMessage = () => {
             style={styles.sendButton}
             onPress={() => handleSend()}
           >
+            <Feather
+              name="message-circle"
+              size={17}
+              style={styles.messageCircle}
+            />
             <Text style={styles.sendButtonText}>Send</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </ImageBackground>
+      {/* </ImageBackground> */}
+    </TouchableWithoutFeedback>
     // </SafeAreaView>
   );
 };
@@ -240,7 +264,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
-    backgroundColor: "#BFD7EA",
+    // backgroundColor: "#BFD7EA",
+    backgroundColor: "white",
     width: "80%",
     height: hp("60%"),
     padding: 5,
@@ -250,8 +275,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "20%",
     left: "10%",
-    borderWidth: 2,
-    borderColor: "#4F759B",
+    borderWidth: 4,
+    // borderColor: "#4F759B",
+    borderColor: "#BFD7EA",
   },
 
   headerSection: {
@@ -259,6 +285,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+    width: "100%",
   },
 
   profileContainer: {
@@ -266,9 +293,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#FFF",
-    paddingVertical: 13,
-    paddingHorizontal: 10,
-    borderRadius: 5,
+    borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -276,13 +301,16 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
-    // marginTop: 25,
+    marginTop: 25,
     padding: 20,
-    marginLeft: 15,
-    marginRight: 15,
-    height: "50%",
+    width: "100%",
+    maxWidth: 360,
+    height: "100%",
     alignSelf: "center",
     position: "relative",
+    top: "30%",
+    marginRight: 20,
+    marginLeft: 20,
   },
 
   profileImageContainer: {
@@ -317,6 +345,7 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat",
     fontWeight: "300",
     lineHeight: 25.29,
+    top: "10%",
   },
 
   profileTag: {
@@ -326,6 +355,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     fontWeight: "400",
     lineHeight: 17.71,
+    top: "10%",
   },
 
   profileHeader: {
@@ -348,8 +378,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 20,
     top: 75,
-    width: 302,
-    height: 51,
+    width: "100%",
+    flexGrow: 2,
   },
 
   profileThought: {
@@ -365,8 +395,8 @@ const styles = StyleSheet.create({
     textAlign: "right",
     padding: 5,
     position: "absolute",
-    right: -30,
-    top: 5,
+    right: "3%",
+    top: "5%",
   },
 
   headerCloseText: {
@@ -383,6 +413,17 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito-Bold",
   },
 
+  you: {
+    color: "black",
+    fontSize: 16,
+    fontFamily: "Nunito",
+    fontWeight: "700",
+    lineHeight: 18.09,
+    top: "20%",
+    right: "40%",
+    marginLeft: 15,
+  },
+
   inputSection: {
     flex: 6,
     marginVertical: 10,
@@ -390,15 +431,18 @@ const styles = StyleSheet.create({
 
   inputTextBox: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "transparent",
     color: "black",
-    fontSize: 16,
-    fontFamily: "Nunito",
-    fontWeight: "700",
+    fontSize: 13,
     padding: 10,
-    marginLeft: 15,
+    marginLeft: 20,
     marginRight: 15,
     borderRadius: 5,
+    height: hp("60%"),
+    top: "35%",
+    fontFamily: "Montserrat",
+    lineHeight: 14.69,
+    fontWeight: "400",
   },
 
   sendSection: {
@@ -407,7 +451,6 @@ const styles = StyleSheet.create({
   },
 
   sendButton: {
-    flex: 1,
     backgroundColor: "#4F759B",
     borderRadius: 33.02,
     paddingVertical: 5,
@@ -419,7 +462,7 @@ const styles = StyleSheet.create({
     borderColor: "white",
     width: 85,
     height: 32,
-    flexDirection: "column",
+    flexDirection: "row",
   },
 
   sendButtonText: {
@@ -429,6 +472,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 22.5,
     right: -4,
+  },
+
+  messageCircle: {
+    color: "white",
+    width: 20,
+    height: 20,
+    left: 1.89,
+    top: 2.38,
   },
 });
 

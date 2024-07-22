@@ -138,7 +138,7 @@ const UserCard = ({ user }) => {
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>{message}</Text>
       </View>
-      <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+      <TouchableOpacity style={styles.sendButton} onPress={() => onSend(user)}>
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
         <Text style={styles.sendButtonText}>Reply</Text>
       </TouchableOpacity>

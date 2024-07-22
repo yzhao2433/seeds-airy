@@ -593,6 +593,7 @@ import {
   ImageBackground,
   Image,
   Button,
+  Modal,
 } from "react-native";
 import {
   getFirestore,
@@ -675,7 +676,7 @@ const getAvatarSource = (avatarId) => {
   return avatar ? avatar.source : defaultAvatar;
 };
 
-const UserCard = ({ user }) => {
+const UserCard = ({ user, onSend }) => {
   const firstThought =
     user.thoughts && user.thoughts.length > 0
       ? user.thoughts[0].thought
@@ -704,7 +705,8 @@ const UserCard = ({ user }) => {
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>{firstThought}</Text>
       </View>
-      <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+      {/* <TouchableOpacity style={styles.sendButton} onPress={handleSend}> */}
+      <TouchableOpacity style={styles.sendButton} onPress={() => onSend(user)}>
         <Feather name="message-circle" size={17} style={styles.messageCircle} />
         <Text style={styles.sendButtonText}>Send</Text>
       </TouchableOpacity>
@@ -718,9 +720,16 @@ const SendMessage = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [isSendEnabled, setIsSendEnabled] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const handleSendPress = () => setIsSendEnabled(true);
   const handleReceivePress = () => setIsSendEnabled(false);
+  const handleOpenModal = (user) => {
+    setSelectedUser(user);
+    setIsModalVisible(true);
+  };
+  const handleCloseModal = () => setIsModalVisible(false);
 
   useEffect(() => {
     fetchData();
@@ -810,9 +819,21 @@ const SendMessage = () => {
         </TouchableOpacity>
         <ScrollView style={styles.userList}>
           {usersData.map((user) => (
-            <UserCard key={user.id} user={user} />
+            <UserCard key={user.id} user={user} onSend={handleOpenModal} />
           ))}
         </ScrollView>
+        <Modal
+          visible={isModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={handleCloseModal}
+        >
+          <WritingMessage
+            senderUID={auth.currentUser?.uid}
+            receiverUID={selectedUser?.id}
+            onClose={handleCloseModal}
+          />
+        </Modal>
       </View>
     </ImageBackground>
   );
@@ -1033,6 +1054,19 @@ const styles = StyleSheet.create({
     height: 20,
     left: 1.89,
     top: 2.38,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "90%",
+    maxHeight: "80%",
   },
 });
 

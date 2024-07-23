@@ -125,6 +125,8 @@ function SignUp() {
         thoughts: [],
         messagesReceived: [],
         messageLeft: 10,
+        score: 0,
+        messageLastSent: "",
       });
     } catch (error) {
       console.error("Error creating user: ", error);

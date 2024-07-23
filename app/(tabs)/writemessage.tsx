@@ -92,6 +92,7 @@ const getAvatarSource = (avatarId) => {
 
 const fetchReceiverData = async (receiverUID: string) => {
   try {
+    console.log();
     const receiverRef = doc(usersRef, receiverUID);
     console.log("line 92 ", receiverRef);
     const receiverSnap = await getDoc(receiverRef);
@@ -121,7 +122,7 @@ const fetchReceiverData = async (receiverUID: string) => {
 };
 
 const UserCard = ({ receiverUID }) => {
-  // console.log("User Card received ", receiverUID);
+  console.log("User Card received on writing message", receiverUID);
   const [receiver, setReceiver] = useState(null);
   useEffect(() => {
     const fetchData = async () => {
@@ -162,6 +163,7 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
   console.log("receiverID is for writing message ", receiverUID);
   const addRecord = async (senderID, receiverID) => {
     try {
+      console.log("addRecord called ");
       const receiverRef = doc(usersRef, receiverID);
       const receiverSnap = await getDoc(receiverRef);
       if (receiverSnap.exists()) {
@@ -171,16 +173,25 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
         const newMessage = { senderID, message };
         // Remove the last user (the earliest person who sent the message) and
         // prepend the current user to the receiver's list
-        const updatedArray = [newMessage, ...currentArray.slice(0, -1)];
+        if (currentArray.length == 5) {
+          var updatedArray = [newMessage, ...currentArray.slice(0, -1)];
+        } else {
+          var updatedArray = [newMessage, ...currentArray];
+        }
         await updateDoc(receiverRef, { messagesReceived: updatedArray });
       }
       const senderRef = doc(usersRef, senderID);
       const senderSnap = await getDoc(senderRef);
       if (senderSnap.exists()) {
-        const senderCurrData = receiverSnap.data();
+        const senderCurrData = senderSnap.data();
+        console.log("line 185 ", senderCurrData);
         const senderMessageLeft = senderCurrData?.messageLeft || 1;
-        const numMessageSent = 10 - senderMessageLeft - 1;
-        const newScore = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
+        console.log("line 187 ", senderMessageLeft);
+        const numMessageSent = 10 - senderMessageLeft + 1;
+        console.log("line 189 ", numMessageSent);
+        const addedNum = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
+        const newScore = senderCurrData?.score + addedNum;
+        console.log("line 191 ", newScore);
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
         await updateDoc(senderRef, { score: newScore });
       }

@@ -194,6 +194,8 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
         console.log("line 191 ", newScore);
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
         await updateDoc(senderRef, { score: newScore });
+        const sendTime = Date();
+        await updateDoc(senderRef, { messageLastSent: sendTime });
       }
     } catch (error) {
       console.error("Error modifying message received array:", error);

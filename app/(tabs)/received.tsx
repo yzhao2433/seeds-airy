@@ -201,7 +201,9 @@ const ReceiveMessage = () => {
           // runs each listener in arraySenderListener
           return () => {
             console.log("listeners:", arraySenderListeners.length);
-            arraySenderListeners.forEach((sender) => sender());
+            arraySenderListeners.forEach((unsubscribeSender) =>
+              unsubscribeSender()
+            );
             // setLoading(false);
           };
           // setSendersData(currList => currList.concat(newSender));

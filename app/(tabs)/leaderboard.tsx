@@ -161,7 +161,7 @@ const Leaderboard = () => {
           };
           // console.log(userData);
           tempUserScore.push(userData);
-          // console.log("new user added ", userData);
+          console.log("new user added ", userData);
         });
         // console.log("Score before:", tempUserScore);
         // once scores are obtained, need to sort in decending order by score

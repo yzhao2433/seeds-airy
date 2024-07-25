@@ -446,7 +446,7 @@ const UserCard = ({ user }) => {
   return (
     <View style={styles.profileContainer}>
       <Text style={[styles.profileRanking, globalFont.Nunito]}>
-        {user.rank}
+        #{user.rank}
       </Text>
       <View style={styles.profileImageContainer}>
         <Image source={avatarSource} style={styles.profileImage} />

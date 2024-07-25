@@ -19,6 +19,7 @@ import {
   updateDoc,
   getFirestore,
   collection,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth } from "./firebase";
 import { app } from "./firebase";
@@ -123,45 +124,122 @@ const MoodIcon = ({ moodIconNumber }) => {
   );
 };
 
-const fetchReceiverData = async (receiverUID: string) => {
-  try {
-    console.log();
-    const receiverRef = doc(usersRef, receiverUID);
-    const receiverSnap = await getDoc(receiverRef);
-    if (receiverSnap.exists()) {
-      const receiverData = {
-        uid: receiverUID,
-        ...receiverSnap.data(),
-      };
-      console.log("line 100 ", receiverData);
-      return {
-        nickname: receiverData.nickname || "Unknown User",
-        firstThought:
-          receiverData.thoughts?.[0]?.thought || "User did not input a thought",
-        avatar: receiverData.avatar || 0,
-        messageToMe: receiverData.messagesReceived || "",
-        mood: receiverData.moods?.[0] || 0,
-        hobbies: receiverData.hobbies || "",
-      };
-    } else {
-      throw new Error("Receiver data not found");
-    }
-  } catch (error) {
-    console.error("Error getting the receiver data:", error);
-  }
-};
+// const fetchReceiverData = async (receiverUID: string) => {
+//   try {
+//     console.log();
+//     const receiverRef = doc(usersRef, receiverUID);
+//     const receiverSnap = await getDoc(receiverRef);
+//     if (receiverSnap.exists()) {
+//       const receiverData = {
+//         uid: receiverUID,
+//         ...receiverSnap.data(),
+//       };
+//       console.log("line 100 ", receiverData);
+//       return {
+//         nickname: receiverData.nickname || "Unknown User",
+//         firstThought:
+//           receiverData.thoughts?.[0]?.thought || "User did not input a thought",
+//         avatar: receiverData.avatar || 0,
+//         messageToMe: receiverData.messagesReceived || "",
+//         mood: receiverData.moods?.[0] || 0,
+//         hobbies: receiverData.hobbies || "",
+//       };
+//     } else {
+//       throw new Error("Receiver data not found");
+//     }
+//   } catch (error) {
+//     console.error("Error getting the receiver data:", error);
+//   }
+// };
 
 const UserCard = ({ receiverUID }) => {
   console.log("User Card received on writing message", receiverUID);
-  const [receiver, setReceiver] = useState(null);
+  const [receiver, setReceiver] = useState<{
+    uid: String;
+    nickname: string;
+    firstThought: string;
+    todayMood: number;
+    hobbies: string;
+  }>();
+  const receieverDocRef = doc(usersRef, receiverUID);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchReceiverData(receiverUID);
-      setReceiver(data);
+    const getTodayDate = () => {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${day}`;
     };
-    fetchData();
-  }, [receiverUID]);
+
+    const getTodayDateMon = () => {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${month}-${day}`;
+    };
+
+    const getDayOfWeek = () => {
+      const today = new Date();
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return daysOfWeek[today.getDay()];
+    };
+
+    const thisDayOfWeek = getDayOfWeek();
+    const todayDate = getTodayDate();
+    const todayDateMon = getTodayDateMon();
+    console.log("Today's day of week", thisDayOfWeek);
+    console.log("Today's Date:", todayDate);
+
+    const unsubscribe = onSnapshot(
+      receieverDocRef,
+      (receiver) => {
+        if (receiver.exists()) {
+          const receiverData = {
+            uid: receiverUID,
+            nickname: receiver.data().nickname || "Unknown User",
+            firstThought: receiver
+              .data()
+              .thoughts.find((thought) => thought.date === todayDateMon)
+              ? receiver
+                  .data()
+                  .thoughts.find((thought) => thought.date === todayDateMon)
+                  .thought
+              : "No thoughts available today",
+            todayMood:
+              receiver.data().moods &&
+              receiver
+                .data()
+                .moods.find(
+                  (mood) =>
+                    mood.date === todayDate && mood.dayOfWeek === thisDayOfWeek
+                )
+                ? receiver
+                    .data()
+                    .moods.find(
+                      (mood) =>
+                        mood.date === todayDate &&
+                        mood.dayOfWeek === thisDayOfWeek
+                    ).moodIcon
+                : null,
+            avatar: receiver.data().avatar,
+            hobbies: receiver.data().hobbies || "",
+          };
+          console.log(
+            "line 99 ",
+            receiver.data().moods.find((mood) => mood.date === todayDate)
+          );
+          console.log("full mood list ", receiver.data().moods);
+          console.log("line 100 ", receiverData);
+          setReceiver(receiverData);
+        } else {
+          throw new Error("Receiver data not found");
+        }
+      },
+      (error) => {
+        console.error("Error listening to receiver ", error);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
   if (!receiver) {
     return <Text>Loading...</Text>; // or a loading spinner
@@ -169,29 +247,16 @@ const UserCard = ({ receiverUID }) => {
 
   const avatarSource = getAvatarSource(receiver.avatar);
 
-  const getTodayDate = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
-    const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
-    return `${month}-${day}`;
-  };
+  // const firstThought =
+  //   receiver.thoughts &&
+  //   receiver.thoughts.find((thought) => thought.date === todayDate)
+  //     ? receiver.thoughts.find((thought) => thought.date === todayDate).thought
+  //     : "No thoughts available today";
 
-  const todayDate = getTodayDate();
+  // console.log("Today's Thoughts:", firstThought);
 
-  const firstThought =
-    receiver.thoughts &&
-    receiver.thoughts.find((thought) => thought.date === todayDate)
-      ? receiver.thoughts.find((thought) => thought.date === todayDate).thought
-      : "No thoughts available today";
-
-  console.log("Today's Thoughts:", firstThought);
-
-  const todayMood =
-    receiver.moods && receiver.moods.find((mood) => mood.date === todayDate);
-
-  console.log("Today's Date:", todayDate);
-  console.log("User's Moods:", receiver.moods);
-  console.log("Current Mood:", todayMood);
+  // const todayMood =
+  //   receiver.moods && receiver.moods.find((mood) => mood.date === todayDate);
 
   return (
     <View style={styles.profileContainer}>
@@ -204,14 +269,14 @@ const UserCard = ({ receiverUID }) => {
           <Text style={styles.profileTag}>{receiver.hobbies}</Text>
         </View>
         <View style={styles.moodIconsContainer}>
-          {todayMood ? (
+          {receiver.todayMood ? (
             <View
               style={[
                 styles.circle,
-                { backgroundColor: getBackgroundColor(todayMood.moodIcon) },
+                { backgroundColor: getBackgroundColor(receiver.todayMood) },
               ]}
             >
-              <MoodIcon moodIconNumber={todayMood.moodIcon} />
+              <MoodIcon moodIconNumber={receiver.todayMood} />
             </View>
           ) : (
             <View style={styles.placeholderCircle} />
@@ -255,14 +320,10 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
       const senderSnap = await getDoc(senderRef);
       if (senderSnap.exists()) {
         const senderCurrData = senderSnap.data();
-        console.log("line 185 ", senderCurrData);
         const senderMessageLeft = senderCurrData?.messageLeft || 1;
-        console.log("line 187 ", senderMessageLeft);
         const numMessageSent = 10 - senderMessageLeft + 1;
-        console.log("line 189 ", numMessageSent);
         const addedNum = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
         const newScore = senderCurrData?.score + addedNum;
-        console.log("line 191 ", newScore);
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
         await updateDoc(senderRef, { score: newScore });
         const sendTime = Date();

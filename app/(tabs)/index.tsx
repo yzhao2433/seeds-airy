@@ -267,7 +267,7 @@ const Home = () => {
         </Text>
         <View style={styles.profileContainer}>
           <Text style={[styles.profileRanking, globalFont.Nunito]}>
-            {userData ? userData.rank : 0}
+            #{userData ? userData.rank : 0}
           </Text>
           <View style={styles.profileImageContainer}>
             <Image source={avatarSource} style={styles.profileImage} />

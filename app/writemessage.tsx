@@ -81,7 +81,7 @@ const avatars = [
 const db = getFirestore(app);
 const usersRef = collection(db, "user");
 
-const defaultAvatar = require("../../assets/images/avatar.png");
+const defaultAvatar = require("../assets/images/avatar.png");
 
 const getAvatarSource = (avatarId) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);

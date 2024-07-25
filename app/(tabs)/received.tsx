@@ -301,12 +301,12 @@ const ReceiveMessage = () => {
   // };
 
   if (isLoading) {
-    console.log("loading");
-    // return (
-    //   <View style={styles.loading}>
-    //     <Text>Loading...</Text>
-    //   </View>
-    // );
+    // console.log("loading");
+    return (
+      <View style={styles.loading}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   return (
@@ -338,7 +338,7 @@ const ReceiveMessage = () => {
             ))}
           </ScrollView>
         ) : (
-          <Text>
+          <Text style={styles.activeText}>
             You did not received a message yet, start connecting with other
             airies via sending them a message now!
           </Text>

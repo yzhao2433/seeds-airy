@@ -153,72 +153,107 @@ const ReceiveMessage = () => {
     const currUser = auth.currentUser?.uid ?? "";
     const unsubscribe = onSnapshot(
       doc(usersRef, currUser),
-      (currUser) => {
+      async (currUser) => {
         const currUserData = currUser.data();
         const currMessages = currUserData?.messagesReceived || [];
 
         // Check if there are any messages received
         if (currMessages.length !== 0) {
-          const arraySenderListeners = [];
+          const tempSenderData = [];
           let completedRequest = 0;
           // Map over the messagesReceived array and fetch sender data for each message
           for (const sender of currMessages) {
-            // currMessages.forEach((sender) => {
-            const unsubscribeSender = onSnapshot(
-              doc(usersRef, sender.senderID),
-              (senderRef) => {
+            try {
+              const senderRef = await getDoc(doc(usersRef, sender.senderID));
+              if (senderRef.exists()) {
+                const senderData = senderRef.data();
                 const senderObj = {
-                  uid: senderRef.data()?.uid,
-                  nickname: senderRef.data()?.nickname,
+                  uid: senderData.data()?.uid,
+                  nickname: senderData.data()?.nickname,
                   // if no mood was detected want to not display it
-                  mood: senderRef.data()?.moods[0].moodIcon || 0,
-                  hobbies: senderRef.data()?.hobbies,
+                  mood: senderData.data()?.moods[0].moodIcon || 0,
+                  hobbies: senderData.data()?.hobbies,
                   message: sender.message,
-                  avatar: senderRef.data()?.avatar,
+                  avatar: senderData.data()?.avatar,
                 };
-                sendersData.push(senderObj);
-                console.log(
-                  "new user added in received dynamically",
-                  sendersData
-                );
-
-                completedRequest += 1;
-
-                // if (completedRequest === currMessages.length) {
-                //   setLoading(false);
-                // }
-              },
-              (error) => {
-                setLoading(false);
-                console.error("Can't fetch this sender's information ", sender);
+                tempSenderData.push(senderObj);
               }
-            );
-            // add each listener to the array
-            console.log("new listener ", arraySenderListeners.length);
-            arraySenderListeners.push(unsubscribeSender);
+            } catch (error) {
+              console.error("Can't fetch this user");
+            }
+            completedRequest += 1;
           }
-          // );
-          // runs each listener in arraySenderListener
-          return () => {
-            console.log("listeners:", arraySenderListeners.length);
-            arraySenderListeners.forEach((unsubscribeSender) =>
-              unsubscribeSender()
-            );
-            // setLoading(false);
-          };
-          // setSendersData(currList => currList.concat(newSender));
+          if (completedRequest === currMessages.length) {
+            setSendersData(tempSenderData);
+            setLoading(false);
+          }
         } else {
           setReceivedMessages(false);
           setLoading(false);
         }
       },
       (error) => {
-        console.error("Error listening to current user activity");
-        setLoading(false);
+        console.error("Error listening to user");
       }
     );
     return () => unsubscribe();
-  }, []);
+  });
+  // currMessages.forEach((sender) => {
+  // const unsubscribeSender = onSnapshot(
+  //   doc(usersRef, sender.senderID),
+  //   (senderRef) => {
+  //     const senderObj = {
+  //       uid: senderRef.data()?.uid,
+  //       nickname: senderRef.data()?.nickname,
+  //       // if no mood was detected want to not display it
+  //       mood: senderRef.data()?.moods[0].moodIcon || 0,
+  //       hobbies: senderRef.data()?.hobbies,
+  //       message: sender.message,
+  //       avatar: senderRef.data()?.avatar,
+  //     };
+  //     sendersData.push(senderObj);
+  //     console.log(
+  //       "new user added in received dynamically",
+  //       sendersData
+  //     );
+
+  // completedRequest += 1;
+
+  // if (completedRequest === currMessages.length) {
+  //   setLoading(false);
+  // }
+  // }
+  //   (error) => {
+  //     setLoading(false);
+  //     console.error("Can't fetch this sender's information ", sender);
+  //   }
+  // );
+  // add each listener to the array
+  //   console.log("new listener ", arraySenderListeners.length);
+  //   arraySenderListeners.push(unsubscribeSender);
+  // }
+  // );
+  // runs each listener in arraySenderListener
+  //   return () => {
+  //     console.log("listeners:", arraySenderListeners.length);
+  //     arraySenderListeners.forEach((unsubscribeSender) =>
+  //       unsubscribeSender()
+  //     );
+  //     // setLoading(false);
+  //   };
+  //   // setSendersData(currList => currList.concat(newSender));
+  // } else {
+  //   setReceivedMessages(false);
+  //   setLoading(false);
+  // }
+  // },
+  //     , (error) => {
+  //       console.error("Error listening to current user activity");
+  //       setLoading(false);
+  //     }
+  //   );
+  //   return () => unsubscribe();
+  // }, []);
 
   // useEffect(() => {
   //   getMessages();
@@ -537,7 +572,5 @@ const styles = StyleSheet.create({
     top: 2.38,
   },
 });
-
-export default ReceiveMessage;
 
 export default ReceiveMessage;

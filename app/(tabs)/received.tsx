@@ -168,13 +168,13 @@ const ReceiveMessage = () => {
               if (senderRef.exists()) {
                 const senderData = senderRef.data();
                 const senderObj = {
-                  uid: senderData.data()?.uid,
-                  nickname: senderData.data()?.nickname,
+                  uid: senderData?.uid,
+                  nickname: senderData?.nickname,
                   // if no mood was detected want to not display it
-                  mood: senderData.data()?.moods[0].moodIcon || 0,
-                  hobbies: senderData.data()?.hobbies,
+                  mood: senderData?.moods[0].moodIcon || 0,
+                  hobbies: senderData?.hobbies,
                   message: sender.message,
-                  avatar: senderData.data()?.avatar,
+                  avatar: senderData?.avatar,
                 };
                 tempSenderData.push(senderObj);
               }
@@ -301,11 +301,12 @@ const ReceiveMessage = () => {
   // };
 
   if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    console.log("loading");
+    // return (
+    //   <View style={styles.loading}>
+    //     <Text>Loading...</Text>
+    //   </View>
+    // );
   }
 
   return (
@@ -326,18 +327,22 @@ const ReceiveMessage = () => {
             <Text style={styles.activeText}>Received</Text>
           </TouchableOpacity>
         </View>
-        (receivedMessages ? (
-        <ScrollView style={styles.userList}>
-          {sendersData.map((sender) => (
-            <UserCard key={sender.uid} user={sender} onSend={handleOpenModal} />
-          ))}
-        </ScrollView>
-        ) :
-        <Text>
-          You did not received a message yet, start connecting with other airies
-          via sending them a message now!
-        </Text>
-        )
+        {receivedMessages ? (
+          <ScrollView style={styles.userList}>
+            {sendersData.map((sender) => (
+              <UserCard
+                key={sender.uid}
+                user={sender}
+                onSend={handleOpenModal}
+              />
+            ))}
+          </ScrollView>
+        ) : (
+          <Text>
+            You did not received a message yet, start connecting with other
+            airies via sending them a message now!
+          </Text>
+        )}
         <Modal
           visible={isModalVisible}
           animationType="slide"

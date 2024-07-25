@@ -8,6 +8,7 @@ import {
   ImageBackground,
   Image,
   Button,
+  Modal,
 } from "react-native";
 import {
   getFirestore,
@@ -16,6 +17,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { app } from "../firebase";
 // yarn add react-native-vector-icons
@@ -28,7 +30,8 @@ const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
 import { router } from "expo-router";
-import WritingMessage from "./writemessage";
+import WritingMessage from "../writemessage";
+import { set } from "react-hook-form";
 
 const avatars = [
   { id: 1, source: require("../../assets/icons/Bee.png") },
@@ -79,35 +82,7 @@ const avatars = [
   { id: 46, source: require("../../assets/icons/squirrel.png") },
   { id: 47, source: require("../../assets/icons/stingray.png") },
   { id: 48, source: require("../../assets/icons/tiger.png") },
-  // { id: 49, source: require("../../assets/icons/panda.png") },
-  // { id: 50, source: require("../../assets/icons/axolotl.png") },
 ];
-
-const addRecord = async (
-  senderID: string,
-  receiverID: string,
-  message: string
-) => {
-  try {
-    const receiverRef = doc(usersRef, receiverID);
-    console.log(receiverRef);
-    const receiverSnap = await getDoc(receiverRef);
-    console.log(receiverSnap);
-    if (receiverSnap.exists()) {
-      const receiverCurrData = receiverSnap.data();
-      // If field is not found, then the default is an empty array
-      const currentArray = receiverCurrData?.messagesReceived || [];
-      const newMessage = { senderID: senderID, message: message };
-      console.log(newMessage);
-      // Copy over all but last entry of the array (which contains the oldest received message)
-      const updatedArray = [newMessage, ...currentArray.slice(0, -1)];
-      console.log(updatedArray);
-      await updateDoc(receiverRef, { messagesReceived: updatedArray });
-    }
-  } catch (error) {
-    console.error("Error modifying message received array:", error);
-  }
-};
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
@@ -116,15 +91,16 @@ const getAvatarSource = (avatarId: number) => {
   return avatar ? avatar.source : defaultAvatar;
 };
 
-const UserCard = ({ user }) => {
+const UserCard = ({ user, onSend }) => {
+  console.log("User card received ", user);
   const avatarSource = getAvatarSource(user.avatar);
   const message = user.message;
 
-  const handleSend = () =>
-    router.navigate({
-      pathname: "/writemessage",
-      params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
-    });
+  // const handleSend = () =>
+  //   router.navigate({
+  //     pathname: "/writemessage",
+  //     params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
+  //   });
 
   return (
     <View style={styles.profileContainer}>
@@ -153,58 +129,188 @@ const ReceiveMessage = () => {
     {
       uid: string;
       nickname: string;
-      // mood: string;
+      mood: string;
       hobbies: string;
       message: string;
       avatar: number;
     }[]
   >([]);
+  const [isLoading, setLoading] = useState(true);
+  const [receivedMessages, setReceivedMessages] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleOpenModal = (user) => {
+    console.log("line 143 ", user);
+    setSelectedUser(user);
+    setIsModalVisible(true);
+  };
+  const handleCloseModal = () => setIsModalVisible(false);
 
   useEffect(() => {
-    getMessages();
-  }, []);
+    const currUser = auth.currentUser?.uid ?? "";
+    const unsubscribe = onSnapshot(
+      doc(usersRef, currUser),
+      async (currUser) => {
+        const currUserData = currUser.data();
+        const currMessages = currUserData?.messagesReceived || [];
 
-  const getMessages = async () => {
-    try {
-      const currUser = auth.currentUser?.uid ?? "";
-      const currUserDocRef = doc(db, "user", currUser);
-      const currUserDocSnap = await getDoc(currUserDocRef);
-      const currUserData = currUserDocSnap.data();
-
-      const currMessages = currUserData?.messagesReceived || [];
-
-      // Check if there are any messages received
-      if (currMessages.length !== 0) {
-        // Map over the messagesReceived array and fetch sender data for each message
-        const senderArray = await Promise.all(
-          currMessages.map(async (sender) => {
-            const senderRef = doc(usersRef, sender.senderID);
-            const senderSnap = await getDoc(senderRef);
-
-            return {
-              uid: sender.senderID,
-              nickname: senderSnap.data()?.nickname,
-              // mood: senderSnap.data()?.moods?.[0].moodIcon,
-              hobbies: senderSnap.data()?.hobbies,
-              message: sender.message,
-              avatar: senderSnap.data()?.avatar,
-            };
-          })
-        );
-
-        // Update the state with the sender data
-        setSendersData(senderArray);
-      } else {
-        console.log("No messages received.");
+        // Check if there are any messages received
+        if (currMessages.length !== 0) {
+          const tempSenderData = [];
+          let completedRequest = 0;
+          // Map over the messagesReceived array and fetch sender data for each message
+          for (const sender of currMessages) {
+            try {
+              const senderRef = await getDoc(doc(usersRef, sender.senderID));
+              if (senderRef.exists()) {
+                const senderData = senderRef.data();
+                const senderObj = {
+                  uid: senderData?.uid,
+                  nickname: senderData?.nickname,
+                  // if no mood was detected want to not display it
+                  mood: senderData?.moods[0].moodIcon || 0,
+                  hobbies: senderData?.hobbies,
+                  message: sender.message,
+                  avatar: senderData?.avatar,
+                };
+                tempSenderData.push(senderObj);
+              }
+            } catch (error) {
+              console.error("Can't fetch this user");
+            }
+            completedRequest += 1;
+          }
+          if (completedRequest === currMessages.length) {
+            setSendersData(tempSenderData);
+            setLoading(false);
+          }
+        } else {
+          setReceivedMessages(false);
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Error listening to user");
       }
-    } catch (error) {
-      console.error("Error fetching messages: ", error);
-    }
-  };
+    );
+    return () => unsubscribe();
+  });
+  // currMessages.forEach((sender) => {
+  // const unsubscribeSender = onSnapshot(
+  //   doc(usersRef, sender.senderID),
+  //   (senderRef) => {
+  //     const senderObj = {
+  //       uid: senderRef.data()?.uid,
+  //       nickname: senderRef.data()?.nickname,
+  //       // if no mood was detected want to not display it
+  //       mood: senderRef.data()?.moods[0].moodIcon || 0,
+  //       hobbies: senderRef.data()?.hobbies,
+  //       message: sender.message,
+  //       avatar: senderRef.data()?.avatar,
+  //     };
+  //     sendersData.push(senderObj);
+  //     console.log(
+  //       "new user added in received dynamically",
+  //       sendersData
+  //     );
+
+  // completedRequest += 1;
+
+  // if (completedRequest === currMessages.length) {
+  //   setLoading(false);
+  // }
+  // }
+  //   (error) => {
+  //     setLoading(false);
+  //     console.error("Can't fetch this sender's information ", sender);
+  //   }
+  // );
+  // add each listener to the array
+  //   console.log("new listener ", arraySenderListeners.length);
+  //   arraySenderListeners.push(unsubscribeSender);
+  // }
+  // );
+  // runs each listener in arraySenderListener
+  //   return () => {
+  //     console.log("listeners:", arraySenderListeners.length);
+  //     arraySenderListeners.forEach((unsubscribeSender) =>
+  //       unsubscribeSender()
+  //     );
+  //     // setLoading(false);
+  //   };
+  //   // setSendersData(currList => currList.concat(newSender));
+  // } else {
+  //   setReceivedMessages(false);
+  //   setLoading(false);
+  // }
+  // },
+  //     , (error) => {
+  //       console.error("Error listening to current user activity");
+  //       setLoading(false);
+  //     }
+  //   );
+  //   return () => unsubscribe();
+  // }, []);
+
+  // useEffect(() => {
+  //   getMessages();
+  // }, []);
+
+  // const getMessages = async () => {
+  //   try {
+  //     const currUser = auth.currentUser?.uid ?? "";
+  //     const currUserDocRef = doc(db, "user", currUser);
+  //     const currUserDocSnap = await getDoc(currUserDocRef);
+  //     const currUserData = currUserDocSnap.data();
+
+  //     const currMessages = currUserData?.messagesReceived || [];
+
+  //     // Check if there are any messages received
+  //     if (currMessages.length !== 0) {
+  //       // Map over the messagesReceived array and fetch sender data for each message
+  //       const senderArray = await Promise.all(
+  //         currMessages.map(async (sender) => {
+  //           const senderRef = doc(usersRef, sender.senderID);
+  //           const senderSnap = await getDoc(senderRef);
+
+  //           return {
+  //             uid: sender.senderID,
+  //             nickname: senderSnap.data()?.nickname,
+  //             mood: senderSnap.data()?.moods?.[0].moodIcon,
+  //             hobbies: senderSnap.data()?.hobbies,
+  //             message: sender.message,
+  //             avatar: senderSnap.data()?.avatar,
+  //           };
+  //         })
+  //       );
+
+  //       // Update the state with the sender data
+  //       setSendersData(senderArray);
+  //       setLoading(false);
+  //     } else {
+  //       console.log("No messages received.");
+  //       setLoading(false);
+  //     }
+  //   } catch (error) {
+  //     setLoading(false);
+  //     console.error("Error fetching messages: ", error);
+  //   }
+  // };
+
+  if (isLoading) {
+    // console.log("loading");
+    return (
+      <View style={styles.loading}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <ImageBackground
-      source={require("../../assets/images/receiveCloud.png")}
+      // source={require("../../assets/images/receiveCloud.png")}
+      source={require("../../assets/images/receivedCloud2.png")}
       style={styles.background}
       resizeMode="cover"
     >
@@ -220,11 +326,34 @@ const ReceiveMessage = () => {
             <Text style={styles.activeText}>Received</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={styles.userList}>
-          {sendersData.map((sender) => (
-            <UserCard key={sender.uid} user={sender} />
-          ))}
-        </ScrollView>
+        {receivedMessages ? (
+          <ScrollView style={styles.userList}>
+            {sendersData.map((sender) => (
+              <UserCard
+                key={sender.uid}
+                user={sender}
+                onSend={handleOpenModal}
+              />
+            ))}
+          </ScrollView>
+        ) : (
+          <Text style={styles.activeText}>
+            You did not received a message yet, start connecting with other
+            airies via sending them a message now!
+          </Text>
+        )}
+        <Modal
+          visible={isModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={handleCloseModal}
+        >
+          <WritingMessage
+            senderUID={auth.currentUser?.uid}
+            receiverUID={selectedUser?.uid}
+            onClose={handleCloseModal}
+          />
+        </Modal>
       </View>
     </ImageBackground>
   );

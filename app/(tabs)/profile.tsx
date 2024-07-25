@@ -8,6 +8,7 @@ import {
   ImageBackground,
   Modal,
   FlatList,
+  Button,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import {
@@ -79,8 +80,6 @@ const avatars = [
   { id: 46, source: require("../../assets/icons/squirrel.png") },
   { id: 47, source: require("../../assets/icons/stingray.png") },
   { id: 48, source: require("../../assets/icons/tiger.png") },
-  { id: 49, source: require("../../assets/icons/panda.png") },
-  { id: 50, source: require("../../assets/icons/axolotl.png") },
 ];
 
 const Profile = () => {
@@ -93,6 +92,7 @@ const Profile = () => {
     { id: number; source: any } | undefined
   >();
   const [isavatarModalVisible, setavatarModalVisible] = useState(false);
+  const [isMoodsVisible, setMoodsVisible] = useState(false);
 
   const defaultAvatar = require("../../assets/images/avatar.png");
 
@@ -142,7 +142,7 @@ const Profile = () => {
     5: <Feather name="sun" size={20} color="#023567" />,
   };
 
-  const getBackgroundColor = (moodIconNumber) => {
+  const getBackgroundColor = (moodIconNumber: number) => {
     switch (moodIconNumber) {
       case 5:
         return "#FFE785";
@@ -191,18 +191,27 @@ const Profile = () => {
           <Text style={[styles.subHeader, globalFont.Nunito]}>Profile</Text>
           <TouchableOpacity
             style={styles.logoutContainer}
-            onPress={() => router.navigate("/starting")}
+            onPress={() => router.navigate("/features")}
           >
             <MaterialIcons name="logout" size={28} color="#023567" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileContainer}>
-          <Text style={[styles.profileRanking, globalFont.Nunito]}>#25</Text>
+          <Text style={[styles.profileRanking, globalFont.Nunito]}>
+            #{userData ? userData.rank : 0}
+          </Text>
           <View style={styles.profileImageContainer}>
             <Image source={avatarSource} style={styles.profileImage} />
             <View style={styles.editIconContainer}>
-              <Icon name="edit" size={12} color="black" />
+              <Icon
+                name="edit"
+                size={12}
+                color="black"
+                onPress={() => {
+                  setavatarModalVisible(true);
+                }}
+              />
             </View>
           </View>
           <View>
@@ -210,7 +219,7 @@ const Profile = () => {
               {userData ? userData.nickname : "User"}
             </Text>
             <Text style={[styles.profileTag, globalFont.Montserrat]}>
-              #{userData ? userData.hobbies : "User"}
+              {userData ? userData.hobbies : "User"}
             </Text>
           </View>
           <View style={styles.pointContainer}>
@@ -219,24 +228,11 @@ const Profile = () => {
               style={styles.profileStar}
             />
             <Text style={[styles.profilePoints, globalFont.Montserrat]}>
-              13
+              {userData ? userData.score : 0}
             </Text>
           </View>
         </View>
 
-        <Text style={[styles.fields, globalFont.Nunito]}>
-          Choose your avatar!
-        </Text>
-        <TouchableOpacity
-          style={styles.dropdownContainer}
-          onPress={() => setavatarModalVisible(true)}
-        >
-          {selectedAvatar ? (
-            <Image source={selectedAvatar.source} />
-          ) : (
-            <Text style={styles.avatarText}>Click to select an avatar!</Text>
-          )}
-        </TouchableOpacity>
         <Modal
           visible={isavatarModalVisible}
           transparent={true}
@@ -267,7 +263,7 @@ const Profile = () => {
           </TouchableOpacity>
         </Modal>
 
-        <View style={styles.whiteContainer}>
+        {/* <View style={styles.whiteContainer}>
           <Text style={styles.title}>Mood Tracker</Text>
           <ScrollView
             horizontal
@@ -290,34 +286,83 @@ const Profile = () => {
               </View>
             ))}
           </ScrollView>
+        </View> */}
+        <View style={styles.whiteContainer}>
+          <Text style={styles.title}>Mood Tracker</Text>
+          {moods.length === 0 ? (
+            <View>
+              {/* <TouchableOpacity onPress={() => router.navigate("/index")}> */}
+              <Text style={styles.noMoodOrThought}>
+                {" "}
+                Check out home to input a mood.
+              </Text>
+              {/* </TouchableOpacity> */}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+            >
+              {moods.map((mood, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.moodEntry,
+                    { backgroundColor: getBackgroundColor(mood.moodIcon) },
+                  ]}
+                >
+                  <Text style={styles.mooddayLabel}>{mood.date}</Text>
+                  <Text style={styles.mooddayofweekLabel}>
+                    {mood.dayOfWeek}
+                  </Text>
+                  <View style={styles.moodIconContainer}>
+                    <View style={styles.circle}>
+                      {moodIcons[mood.moodIcon]}
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         <View style={styles.whiteContainer}>
           <Text style={styles.title}>Thought Bubble History</Text>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.horizontalScroll}
-          >
-            {thoughts.map((thought, index) => (
-              <View key={index} style={styles.postItContainer}>
-                <Text style={styles.dayLabel}>{thought.date}</Text>
-                <TouchableOpacity
-                  style={styles.postIt}
-                  onPress={() => openModal(thought)}
-                >
-                  <Text style={styles.postItText}>
-                    {thought.thought.slice(0, 62)}
-                    {thought.thought.length > 50 ? "..." : ""}
-                  </Text>
-                  <View style={styles.seeMoreButton}>
-                    <Text style={styles.seeMoreText}>See More</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
+          {thoughts.length === 0 ? (
+            <View>
+              {/* <TouchableOpacity onPress={() => router.navigate("/index")}> */}
+              <Text style={styles.noMoodOrThought}>
+                Check out home to input your thoughts.
+              </Text>
+              {/* </TouchableOpacity> */}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+            >
+              {thoughts.map((thought, index) => (
+                <View key={index} style={styles.postItContainer}>
+                  <Text style={styles.dayLabel}>{thought.date}</Text>
+                  <TouchableOpacity
+                    style={styles.postIt}
+                    onPress={() => openModal(thought)}
+                  >
+                    <Text style={styles.postItText}>
+                      {thought.thought.slice(0, 62)}
+                      {thought.thought.length > 50 ? "..." : ""}
+                    </Text>
+                    <View style={styles.seeMoreButton}>
+                      <Text style={styles.seeMoreText}>See More</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         <Modal
@@ -326,14 +371,19 @@ const Profile = () => {
           visible={modalVisible}
           onRequestClose={closeModal}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                <Text style={styles.closeButtonText}>×</Text>
-              </TouchableOpacity>
-              <ScrollView style={styles.scrollView}>
-                <Text style={styles.modalText}>{selectedPost.thought}</Text>
-              </ScrollView>
+          <View style={styles.thoughtModalBackground}>
+            <View style={styles.thoughtModalContainer}>
+              <View style={styles.modalContent}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={closeModal}
+                >
+                  <Text style={styles.closeButtonText}>×</Text>
+                </TouchableOpacity>
+                <ScrollView style={styles.scrollView}>
+                  <Text style={styles.modalText}>{selectedPost.thought}</Text>
+                </ScrollView>
+              </View>
             </View>
           </View>
         </Modal>
@@ -524,6 +574,19 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 
+  noMoodsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  noMoodsText: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
   moodEntry: {
     marginRight: 10,
     padding: 10,
@@ -637,12 +700,7 @@ const styles = StyleSheet.create({
     fontSize: 7,
     fontFamily: "Nunito",
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
+
   modalContent: {
     backgroundColor: "#fff",
     paddingHorizontal: 40,
@@ -679,10 +737,28 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat",
     textAlign: "left",
   },
+
+  thoughtModalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Optional: for a dimmed background
+  },
+  thoughtModalContainer: {
+    width: "80%",
+    padding: 10,
+    borderRadius: 10,
+    maxHeight: "60%",
+    alignItems: "center",
+  },
   scrollView: {
     maxHeight: 300,
     width: "100%",
     marginTop: 10,
+  },
+
+  noMoodOrThought: {
+    fontFamily: "Montserrat",
   },
 });
 

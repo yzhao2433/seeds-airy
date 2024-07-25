@@ -7,6 +7,7 @@ import {
   ScrollView,
   ImageBackground,
   TextInput,
+  Modal,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import {
@@ -76,8 +77,6 @@ const avatars = [
   { id: 46, source: require("../../assets/icons/squirrel.png") },
   { id: 47, source: require("../../assets/icons/stingray.png") },
   { id: 48, source: require("../../assets/icons/tiger.png") },
-  { id: 49, source: require("../../assets/icons/panda.png") },
-  { id: 50, source: require("../../assets/icons/axolotl.png") },
 ];
 
 const db = getFirestore(app);
@@ -122,6 +121,8 @@ const Home = () => {
     skip: "#FFE785",
     submit: "#FFE785",
   });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isSkipDisabled, setIsSkipDisabled] = useState(false);
   const [messageLeft, setMessageLeft] = useState(0);
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
@@ -136,6 +137,9 @@ const Home = () => {
           if (doc.exists()) {
             const userData = doc.data();
             setUserData(userData);
+            console.log("User data updated:", userData);
+            console.log("User rank:", userData.rank);
+            console.log("User score:", userData.score);
 
             const todayDate = getTodayDay();
             const todayMood = userData.moods?.find(
@@ -233,9 +237,14 @@ const Home = () => {
 
   const handleThoughtSubmit = () => {
     updateUserThoughts();
-    alert("Thoughts submitted");
     setTextAreaBgColor("#FFFFFF");
     setButtonBgColor({ ...buttonBgColor, submit: "#FFE785" });
+    setIsSkipDisabled(true);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
   };
 
   const handleThoughtSkip = () => {
@@ -257,7 +266,9 @@ const Home = () => {
           Welcome back, {userData ? userData.nickname : "User"}!
         </Text>
         <View style={styles.profileContainer}>
-          <Text style={[styles.profileRanking, globalFont.Nunito]}>#25</Text>
+          <Text style={[styles.profileRanking, globalFont.Nunito]}>
+            {userData ? userData.rank : 0}
+          </Text>
           <View style={styles.profileImageContainer}>
             <Image source={avatarSource} style={styles.profileImage} />
           </View>
@@ -266,7 +277,7 @@ const Home = () => {
               {userData ? userData.nickname : "User"}
             </Text>
             <Text style={[styles.profileTag, globalFont.Montserrat]}>
-              #{userData ? userData.hobbies : "User"}
+              {userData ? userData.hobbies : "User"}
             </Text>
           </View>
           <View style={styles.pointContainer}>
@@ -275,7 +286,7 @@ const Home = () => {
               style={styles.profileStar}
             />
             <Text style={[styles.profilePoints, globalFont.Montserrat]}>
-              13
+              {userData ? userData.score : "User"}
             </Text>
           </View>
         </View>
@@ -360,18 +371,43 @@ const Home = () => {
             onChangeText={setThought}
           />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: buttonBgColor.skip }]}
-              onPress={handleThoughtSkip}
-            >
-              <Text style={styles.buttonText}>Skip</Text>
-            </TouchableOpacity>
+            <View style={styles.placeholder}>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: buttonBgColor.skip }]}
+                onPress={handleThoughtSkip}
+                disabled={isSkipDisabled}
+              >
+                <Text style={styles.buttonText}>Skip</Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: buttonBgColor.submit }]}
               onPress={handleThoughtSubmit}
             >
               <Text style={styles.buttonText}>Submit</Text>
             </TouchableOpacity>
+
+            <Modal
+              transparent={true}
+              animationType="fade"
+              visible={isModalVisible}
+              onRequestClose={handleCloseModal}
+            >
+              <View style={styles.modalBackground}>
+                <View style={styles.modalContent}>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={handleCloseModal}
+                  >
+                    <Text style={styles.closeButtonText}>X</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.modalText}>
+                    You have submitted your thoughts today. Feel free to come
+                    back and edit this thought if you wish!
+                  </Text>
+                </View>
+              </View>
+            </Modal>
           </View>
         </View>
 
@@ -389,21 +425,23 @@ const Home = () => {
                 Don't forget to send and check your messages!
               </Text>
               <View style={styles.row}>
-                <Text style={globalFont.Nunito}>Messages Left: </Text>
+                <Text style={[styles.motivationText, globalFont.Nunito]}>
+                  Messages Left to send:{" "}
+                </Text>
                 <View style={styles.circle}>
                   <Text style={[styles.circleText, globalFont.Nunito]}>
                     {messageLeft}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.checkButton}
-                  onPress={() => router.navigate("/message")}
-                >
-                  <Text style={[styles.checkButtonText, globalFont.Nunito]}>
-                    Check
-                  </Text>
-                </TouchableOpacity>
               </View>
+              <TouchableOpacity
+                style={styles.checkButton}
+                onPress={() => router.navigate("/message")}
+              >
+                <Text style={[styles.checkButtonText, globalFont.Nunito]}>
+                  Check
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -574,6 +612,9 @@ const styles = StyleSheet.create({
     zIndex: 2,
     opacity: 100,
   },
+  placeholder: {
+    overflow: "scroll",
+  },
   buttonText: {
     fontSize: 14,
     fontWeight: "bold",
@@ -583,6 +624,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFF5CF",
     padding: 20,
+    paddingVertical: 10,
     borderRadius: 20,
     marginVertical: 36,
     shadowColor: "#000",
@@ -599,25 +641,14 @@ const styles = StyleSheet.create({
     height: 90,
   },
   motivationTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
-    paddingBottom: 5,
+    paddingBottom: 3,
     color: "0D1821",
   },
   motivationText: {
     fontSize: 13,
     color: "#0D1821",
-  },
-  motivationButton: {
-    marginLeft: "auto",
-    backgroundColor: "#FFD700",
-    padding: 10,
-    paddingVertical: 5,
-    borderRadius: 33,
-  },
-  motivationButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
   },
   horizontalContainer: {
     flexDirection: "row",
@@ -628,11 +659,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   checkButton: {
-    padding: 10,
+    padding: 8,
     marginLeft: "auto",
     backgroundColor: "#FFD700",
-    paddingVertical: 5,
+    marginTop: 5,
+    paddingVertical: 3,
     borderRadius: 33,
+    fontWeight: "bold",
   },
   checkButtonText: {
     color: "#0D1821",
@@ -663,6 +696,50 @@ const styles = StyleSheet.create({
   circleText: {
     color: "#fff",
     fontSize: 11,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 40,
+    paddingTop: 15,
+    paddingBottom: 15,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: "85%",
+    alignItems: "center",
+    minHeight: "15%",
+    borderWidth: 4,
+    borderColor: "#BFD7EA",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "#fff",
+    width: 30,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButtonText: {
+    color: "#000000",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  modalText: {
+    marginTop: 20,
+    fontSize: 13,
+    fontFamily: "Montserrat",
+    textAlign: "left",
   },
 });
 

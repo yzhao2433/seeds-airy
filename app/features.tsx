@@ -113,14 +113,20 @@ const featureSelection = () => {
           ))}
         </View>
 
-        <TouchableOpacity
-          style={styles.getStartedContainer}
-          onPress={() => router.navigate("/signup")}
-        >
-          <Text style={[styles.getStartedText, globalFont.Nunito]}>
-            Get Started!
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.loginButton]}
+            onPress={() => router.navigate("/login")}
+          >
+            <Text style={[styles.buttonText, globalFont.Nunito]}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.navigate("/signup")}
+          >
+            <Text style={[styles.buttonText, globalFont.Nunito]}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </ImageBackground>
   );
@@ -197,7 +203,7 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito",
     fontSize: 14,
     fontWeight: 400,
-    marginTop: "10%",
+    marginTop: "0%",
   },
   feature2Title: {
     color: "#4F759B",
@@ -223,6 +229,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     // textAlign: "center",
     marginLeft: "5%",
+    marginTop: "-2%",
   },
   feature3Title: {
     color: "#4F759B",
@@ -288,37 +295,72 @@ const styles = StyleSheet.create({
     backgroundColor: "#4F759B",
     marginHorizontal: 4,
   },
-  getStartedContainer: {
-    borderWidth: 1,
-    borderColor: "#BFD7EA",
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 10,
-    backgroundColor: "#FFE785",
-    width: "85%",
-    alignSelf: "center",
-    marginBottom: hp("2%"),
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    height: 55,
-    marginTop: "12%",
-  },
-  getStartedText: {
-    color: "#4F759B",
-    fontSize: 25,
-    fontFamily: "Nunito",
-    fontWeight: "600",
-    lineHeight: 40,
-    alignSelf: "center",
-    top: -5,
-  },
+  // getStartedContainer: {
+  //   borderWidth: 1,
+  //   borderColor: "#BFD7EA",
+  //   borderRadius: 5,
+  //   padding: 10,
+  //   marginVertical: 10,
+  //   backgroundColor: "#FFE785",
+  //   width: "85%",
+  //   alignSelf: "center",
+  //   marginBottom: hp("2%"),
+  //   shadowColor: "#000",
+  //   shadowOffset: {
+  //     width: 0,
+  //     height: 4,
+  //   },
+  //   shadowOpacity: 0.3,
+  //   shadowRadius: 3.84,
+  //   height: 55,
+  //   marginTop: "12%",
+  // },
+  // getStartedText: {
+  //   color: "#4F759B",
+  //   fontSize: 25,
+  //   fontFamily: "Nunito",
+  //   fontWeight: "600",
+  //   lineHeight: 40,
+  //   alignSelf: "center",
+  //   top: -5,
+  // },
   contentContainerStyle: {
     alignItems: "center",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+    width: "100%",
+  },
+  button: {
+    backgroundColor: "#FFE785",
+    paddingVertical: 8,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FFFFFF",
+    shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 4,
+    // },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 3.84,
+    marginHorizontal: 10,
+    width: 160,
+  },
+  loginButton: {
+    marginRight: 10,
+  },
+  buttonText: {
+    color: "#4F759B",
+    fontWeight: "bold",
+    fontSize: 25,
+    textAlign: "center",
+  },
+  signupButton: {
+    marginLeft: 20,
   },
 });
 

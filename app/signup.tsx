@@ -100,12 +100,15 @@ function SignUp() {
     { id: number; source: any } | undefined
   >();
   const [isModalVisible, setModalVisible] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
-
   const { control, handleSubmit, formState } = useForm();
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (!selectedAvatar) {
+      setAvatarError("Please select an avatar");
+      return;
+    }
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -126,6 +129,7 @@ function SignUp() {
         messagesReceived: [],
         messageLeft: 10,
         score: 0,
+        messageLastSent: "",
       });
     } catch (error) {
       console.error("Error creating user: ", error);
@@ -146,9 +150,8 @@ function SignUp() {
         <Text style={[styles.subtitle1, globalFont.Montserrat]}>
           Put your email and password to create an account!
         </Text>
-
         <Text style={[styles.fields, globalFont.Nunito]}>
-          What is your Username/Email?
+          What is your Email?
         </Text>
         <Controller
           control={control}
@@ -161,13 +164,13 @@ function SignUp() {
               onChangeText={onChange}
               value={value}
               placeholder="Enter an email address..."
+              autoCapitalize="none"
             />
           )}
         />
         {typeof formState.errors.email?.message === "string" && (
           <Text style={styles.error}>{formState.errors.email?.message}</Text>
         )}
-
         <Text style={[styles.fields, globalFont.Nunito]}>
           What is your password?
         </Text>
@@ -183,6 +186,8 @@ function SignUp() {
                 onChangeText={onChange}
                 value={value}
                 secureTextEntry={!showPassword}
+                placeholder="Enter a password..."
+                autoCapitalize="none"
               />
             )}
           />
@@ -201,13 +206,11 @@ function SignUp() {
         {typeof formState.errors.password?.message === "string" && (
           <Text style={styles.error}>{formState.errors.password?.message}</Text>
         )}
-
         <Text style={[styles.subtitle2, globalFont.Montserrat]}>
           Now, let’s learn a little bit about you!
         </Text>
-
         <Text style={[styles.fields, globalFont.Nunito]}>
-          What is your nickname?
+          What is your nickname? (14 char. limit)
         </Text>
         <Controller
           control={control}
@@ -219,15 +222,17 @@ function SignUp() {
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              placeholder="Enter a nickname..."
+              maxLength={14}
+              autoCapitalize="none"
             />
           )}
         />
         {typeof formState.errors.nickname?.message === "string" && (
           <Text style={styles.error}>{formState.errors.nickname?.message}</Text>
         )}
-
         <Text style={[styles.fields, globalFont.Nunito]}>
-          List some of your hobbies!
+          List some of your hobbies! (19 char. limit)
         </Text>
         <Controller
           control={control}
@@ -239,6 +244,9 @@ function SignUp() {
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              placeholder="Please list some of your hobbies..."
+              maxLength={19}
+              autoCapitalize="none"
             />
           )}
         />
@@ -247,7 +255,6 @@ function SignUp() {
             {formState.errors.listHobbies?.message}
           </Text>
         )}
-
         <Text style={[styles.fields, globalFont.Nunito]}>
           Choose your avatar!
         </Text>
@@ -261,6 +268,7 @@ function SignUp() {
             <Text style={styles.avatarText}>Click to select an avatar!</Text>
           )}
         </TouchableOpacity>
+        {avatarError && <Text style={styles.error}>{avatarError}</Text>}
         <Modal
           visible={isModalVisible}
           transparent={true}
@@ -280,6 +288,7 @@ function SignUp() {
                     onPress={() => {
                       setSelectedAvatar(item);
                       setModalVisible(false);
+                      setAvatarError(null);
                     }}
                     style={styles.avatarTouchable}
                   >
@@ -299,7 +308,6 @@ function SignUp() {
         >
           <Text style={[styles.submitText, globalFont.Nunito]}>Sign Up</Text>
         </TouchableOpacity>
-
         <View style={styles.linkContainer}>
           <Link href="/signIn" style={[styles.link, globalFont.Montserrat]}>
             Already have an account? <Link href="login">Log In</Link>

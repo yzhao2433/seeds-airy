@@ -225,7 +225,6 @@ const Home = () => {
           }
         }
         await updateDoc(userDocRef, { thoughts });
-
         console.log("Thoughts updated successfully");
       } else {
         console.log("User document not found");

@@ -169,8 +169,12 @@ const Profile = () => {
     setModalVisible(false);
   };
 
-  const handleAvatarSelect = (item: { id: number; source: any }) => {
+  const handleAvatarSelect = async (item: { id: number; source: any }) => {
+    const usersRef = collection(db, "user");
+    const currentUser = auth.currentUser?.uid;
+    const currUserDoc = doc(usersRef, currentUser);
     setSelectedAvatar(item);
+    await updateDoc(currUserDoc, { avatar: item.id });
     setavatarModalVisible(false);
   };
 

@@ -82,6 +82,8 @@ const avatars = [
 const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
+console.log("line25: ", currUserId);
+console.log("line26: ", auth.currentUser);
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
@@ -92,8 +94,8 @@ const getAvatar = (avatarId: number) => {
 
 const getTodayDate = () => {
   const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
-  const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
   return `${month}-${day}`;
 };
 
@@ -116,11 +118,9 @@ const Home = () => {
   const [placeholder, setPlaceholder] = useState("Write your thoughts here...");
   const [textAreaBgColor, setTextAreaBgColor] = useState("white");
   const [buttonBgColor, setButtonBgColor] = useState({
-    skip: "#FFE785",
     submit: "#FFE785",
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isSkipDisabled, setIsSkipDisabled] = useState(false);
   const [messageLeft, setMessageLeft] = useState(0);
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
@@ -135,6 +135,9 @@ const Home = () => {
           if (doc.exists()) {
             const userData = doc.data();
             setUserData(userData);
+            console.log("User data updated:", userData);
+            console.log("User rank:", userData.rank);
+            console.log("User score:", userData.score);
 
             const todayDate = getTodayDay();
             const todayMood = userData.moods?.find(
@@ -148,6 +151,7 @@ const Home = () => {
               )?.thought || ""
             );
             setMessageLeft(userData.messageLeft || 0);
+            console.log("User data updated:", userData);
           } else {
             console.log("User document not found");
           }
@@ -163,24 +167,7 @@ const Home = () => {
     }
   }, []);
 
-  const updateDailySend = async (userUID) => {
-    const userRef = doc(usersRef, userUID);
-    await updateDoc(userRef, { messageLeft: 10 });
-  };
-
-  const getTimeUntilEndOfDay = () => {
-    const now = new Date();
-    const endOfDay = new Date();
-    endOfDay.setHours(24, 0, 0, 0);
-    return endOfDay - now;
-  };
-
-  setTimeout(() => {
-    updateDailySend(auth.currentUser?.uid);
-
-    // Schedule subsequent runs every 24 hours
-    setInterval(updateDailySend, 24 * 60 * 60 * 1000);
-  }, getTimeUntilEndOfDay());
+  console.log("Current user data:", userData);
 
   const updateUserMood = async (newMoodIcon) => {
     const todayDate = getTodayDay();
@@ -208,6 +195,8 @@ const Home = () => {
         }
       }
       await updateDoc(userDocRef, { moods: moodIcons });
+
+      console.log("Mood icons updated successfully");
       setSelectedMood(newMoodIcon);
     } catch (error) {
       console.error("Error updating mood icons:", error);
@@ -234,6 +223,7 @@ const Home = () => {
           }
         }
         await updateDoc(userDocRef, { thoughts });
+        console.log("Thoughts updated successfully");
       } else {
         console.log("User document not found");
       }
@@ -246,19 +236,11 @@ const Home = () => {
     updateUserThoughts();
     setTextAreaBgColor("#FFFFFF");
     setButtonBgColor({ ...buttonBgColor, submit: "#FFE785" });
-    setIsSkipDisabled(true);
     setIsModalVisible(true);
   };
 
   const handleCloseModal = () => {
     setIsModalVisible(false);
-  };
-
-  const handleThoughtSkip = () => {
-    setThought("");
-    setPlaceholder("Skipped thoughts now, come back later!");
-    setTextAreaBgColor("#D3D3D3");
-    setButtonBgColor({ ...buttonBgColor, skip: "gray" });
   };
 
   return (
@@ -376,15 +358,7 @@ const Home = () => {
             onChangeText={setThought}
           />
           <View style={styles.buttonContainer}>
-            <View style={styles.placeholder}>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: buttonBgColor.skip }]}
-                onPress={handleThoughtSkip}
-                disabled={isSkipDisabled}
-              >
-                <Text style={styles.buttonText}>Skip</Text>
-              </TouchableOpacity>
-            </View>
+            <View style={styles.placeholder}></View>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: buttonBgColor.submit }]}
               onPress={handleThoughtSubmit}
@@ -680,10 +654,10 @@ const styles = StyleSheet.create({
   },
   messagesLeftContainer: {
     padding: 16,
-    backgroundColor: "#fff", // Adjust the background color as needed
-    borderRadius: 8, // Adjust the border radius as needed
-    marginBottom: 16, // Adjust the margin as needed
-    alignItems: "center", // Center items horizontally
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: "center",
   },
   row: {
     flexDirection: "row",
@@ -710,9 +684,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#fff",
-    paddingHorizontal: 40,
+    paddingHorizontal: 25,
     paddingTop: 15,
-    paddingBottom: 15,
+    paddingBottom: 25,
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -721,9 +695,16 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: "85%",
     alignItems: "center",
-    minHeight: "15%",
+    minHeight: "10%",
     borderWidth: 4,
     borderColor: "#BFD7EA",
+  },
+
+  modalText: {
+    marginTop: 20,
+    fontSize: 13,
+    fontFamily: "Montserrat",
+    textAlign: "left",
   },
   closeButton: {
     position: "absolute",
@@ -739,12 +720,6 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  modalText: {
-    marginTop: 20,
-    fontSize: 13,
-    fontFamily: "Montserrat",
-    textAlign: "left",
   },
 });
 

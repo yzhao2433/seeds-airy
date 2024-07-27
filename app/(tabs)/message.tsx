@@ -279,19 +279,14 @@ const SendMessage = () => {
   // user is an object with fields about the user current user want to send a message to
   const checkSentBefore = (user) => {
     // check if I am on that user's messageRecieved field
-    console.log("checkSentBefore is called ", user);
     const unsubscribe = onSnapshot(
       doc(usersRef, user.id),
       (receiverCheck) => {
-        console.log("receiverCheck is called ");
         const receiverMessageList =
           receiverCheck.data()?.messagesReceived || [];
         const currUserSeen = receiverMessageList.some((messageEntry) => {
           return messageEntry.senderID == auth.currentUser?.uid;
         });
-        console.log(" their message received list ", receiverMessageList);
-        console.log("my id ", auth.currentUser?.uid);
-        console.log(" already sent message? ", currUserSeen);
         setCurrUserInList(currUserSeen);
       },
       (error) => {

@@ -168,19 +168,14 @@ const ReceiveMessage = () => {
   // user is an object with fields about the user current user want to send a message to
   const checkRequestValid = (user) => {
     // check if I am on that user's messageRecieved field
-    console.log("checkRequestValid is called ");
     const unsubscribe = onSnapshot(
       doc(usersRef, user.uid),
       (receiverCheck) => {
-        console.log("receiverCheck is called ");
         const receiverMessageList =
           receiverCheck.data()?.messagesReceived || [];
         const currUserSeen = receiverMessageList.some((messageEntry) => {
           return messageEntry.senderID == auth.currentUser?.uid;
         });
-        console.log(" their message received list ", receiverMessageList);
-        console.log("my id ", auth.currentUser?.uid);
-        console.log(" already sent message? ", currUserSeen);
         setCurrUserInList(currUserSeen);
       },
       (error) => {
@@ -206,7 +201,6 @@ const ReceiveMessage = () => {
         const messageChanceLeft =
           currUserData?.messageLeft === 0 ? false : true;
         setCanSendMessage(messageChanceLeft);
-        console.log("can send messages ", currUserData?.messageLeft);
 
         console.log("lin 207");
         // Check if there are any messages received
@@ -255,7 +249,6 @@ const ReceiveMessage = () => {
   }, []);
 
   if (isLoading) {
-    // console.log("loading");
     return (
       <View style={styles.loading}>
         <Text>Loading...</Text>

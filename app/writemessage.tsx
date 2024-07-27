@@ -252,17 +252,6 @@ const UserCard = ({ receiverUID, message }) => {
 
   const avatarSource = getAvatarSource(receiver.avatar);
 
-  // const firstThought =
-  //   receiver.thoughts &&
-  //   receiver.thoughts.find((thought) => thought.date === todayDate)
-  //     ? receiver.thoughts.find((thought) => thought.date === todayDate).thought
-  //     : "No thoughts available today";
-
-  // console.log("Today's Thoughts:", firstThought);
-
-  // const todayMood =
-  //   receiver.moods && receiver.moods.find((mood) => mood.date === todayDate);
-
   return (
     <View style={styles.profileContainer}>
       <View style={styles.row}>
@@ -366,67 +355,61 @@ export const WritingMessage = ({
   };
 
   return (
-    // <SafeAreaView>
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      {/* <ImageBackground
-        source={require("../../assets/images/writingCloud.png")}
-        style={styles.background}
-        > */}
       <View style={styles.container}>
         <View style={styles.modalContent}>
           <TouchableOpacity style={styles.headerCloseButton} onPress={onClose}>
             <AntDesign name="close" size={25} color="black" />
           </TouchableOpacity>
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.centeredContainer}>
-              <UserCard
-                key={receiverUID}
-                receiverUID={receiverUID}
-                message={messageDisplayed}
-              />
-              {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
+          <View style={styles.scrollContainer}>
+            <ScrollView
+              contentContainerStyle={styles.scrollViewContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.centeredContainer}>
+                <UserCard
+                  key={receiverUID}
+                  receiverUID={receiverUID}
+                  message={messageDisplayed}
+                />
+                {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
 
-              <View style={styles.you}>
-                <Text> YOU: </Text>
+                <View style={styles.you}>
+                  <Text> YOU: </Text>
+                </View>
+                <View style={styles.inputSection}>
+                  <TextInput
+                    style={styles.inputTextBox}
+                    placeholder="Please type the message you want to send to your fellow airies: "
+                    placeholderTextColor={"#C0C0C0"}
+                    multiline={true}
+                    scrollEnabled={true}
+                    spellCheck={true}
+                    textAlign={"left"}
+                    onChangeText={handleChange}
+                    value={message}
+                    onBlur={handleBlur}
+                  ></TextInput>
+                </View>
               </View>
-              <View style={styles.inputSection}>
-                <TextInput
-                  style={styles.inputTextBox}
-                  placeholder="Please type the message you want to send to your fellow airies: "
-                  placeholderTextColor={"#C0C0C0"}
-                  multiline={true}
-                  scrollEnabled={true}
-                  spellCheck={true}
-                  textAlign={"left"}
-                  onChangeText={handleChange}
-                  value={message}
-                  onBlur={handleBlur}
-                ></TextInput>
-              </View>
-              <View style={styles.sendSection}>
-                <TouchableOpacity
-                  style={styles.sendButton}
-                  onPress={() => handleSend()}
-                >
-                  <Feather
-                    name="message-circle"
-                    size={17}
-                    style={styles.messageCircle}
-                  />
-                  <Text style={styles.sendButtonText}>Send</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
+            </ScrollView>
+          </View>
+          <View style={styles.sendSection}>
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={() => handleSend()}
+            >
+              <Feather
+                name="message-circle"
+                size={17}
+                style={styles.messageCircle}
+              />
+              <Text style={styles.sendButtonText}>Send</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        {/* </ImageBackground> */}
       </View>
     </TouchableWithoutFeedback>
-
-    // </SafeAreaView>
   );
 };
 
@@ -437,6 +420,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     alignItems: "center",
   },
+
   modalContent: {
     height: "65%",
     width: "88%",
@@ -451,8 +435,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
     flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end",
   },
   headerCloseButton: {
     position: "absolute",
@@ -460,15 +443,23 @@ const styles = StyleSheet.create({
     right: 10,
     zIndex: 5,
   },
+
+  scrollContainer: {
+    flex: 9,
+    justifyContent: "center",
+  },
+
   scrollViewContent: {
     paddingVertical: 20,
     paddingHorizontal: 15,
     justifyContent: "center",
   },
+
   centeredContainer: {
     flex: 1,
     justifyContent: "center",
   },
+
   profileContainer: {
     flexDirection: "column",
     alignItems: "center",
@@ -556,6 +547,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: "60%",
   },
+
   inputTextBox: {
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -572,6 +564,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "flex-end",
+    alignItems: "center",
+    paddingTop: 10,
   },
 
   sendButton: {
@@ -584,6 +578,7 @@ const styles = StyleSheet.create({
     width: 85,
     height: 32,
     flexDirection: "row",
+
     // position: 'absolute',
     // bottom: 10, // Distance from the bottom of the modal
     // right: 10,

@@ -17,24 +17,24 @@ import {
 import globalFont from "../../styles/globalfont";
 import { app, auth } from "../firebase";
 
-const updateDailySend = async (userUID) => {
-  const userRef = doc(usersRef, userUID);
-  await updateDoc(userRef, { messageLeft: 10 });
-};
+// const updateDailySend = async (userUID) => {
+//   const userRef = doc(usersRef, userUID);
+//   await updateDoc(userRef, { messageLeft: 10 });
+// };
 
-const getTimeUntilEndOfDay = () => {
-  const now = new Date();
-  const endOfDay = new Date();
-  endOfDay.setHours(0, 0, 3, 0);
-  return endOfDay - now;
-};
+// const getTimeUntilEndOfDay = () => {
+//   const now = new Date();
+//   const endOfDay = new Date();
+//   endOfDay.setHours(0, 0, 3, 0);
+//   return endOfDay - now;
+// };
 
-setTimeout(() => {
-  updateDailySend(auth.currentUser?.uid);
+// setTimeout(() => {
+//   updateDailySend(auth.currentUser?.uid);
 
-  // Schedule subsequent runs every 1 min (original 24*60*60*1000)
-  setInterval(updateDailySend, 3 * 60 * 1000);
-}, getTimeUntilEndOfDay());
+//   // Schedule subsequent runs every 1 min (original 24*60*60*1000)
+//   setInterval(updateDailySend, 3 * 60 * 1000);
+// }, getTimeUntilEndOfDay());
 
 const db = getFirestore(app);
 const userCollection = collection(db, "user");

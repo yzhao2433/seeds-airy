@@ -252,8 +252,10 @@ export const WritingMessage = ({
   receiverUID,
   onClose,
   messageDisplayed,
+  oneMessageChance,
 }) => {
   const [message, setMessage] = useState("");
+  const [lastMessageModal, setLastMessageModal] = useState(false);
   const addRecord = async (senderID, receiverID) => {
     try {
       const receiverRef = doc(usersRef, receiverID);
@@ -292,7 +294,13 @@ export const WritingMessage = ({
 
   const handleSend = () => {
     addRecord(senderUID, receiverUID);
+    setLastMessageModal(oneMessageChance ? true : false);
+    console.log("one last message modal set visible ", oneMessageChance);
     onClose();
+  };
+
+  const handleCloseLastMessageModal = () => {
+    setLastMessageModal(false);
   };
 
   const handleBlur = () => {
@@ -305,65 +313,90 @@ export const WritingMessage = ({
 
   return (
     // <SafeAreaView>
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      {/* <ImageBackground
+    <View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        {/* <ImageBackground
         source={require("../../assets/images/writingCloud.png")}
         style={styles.background}
         > */}
-      <View style={styles.container}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.headerCloseButton} onPress={onClose}>
-            <AntDesign name="close" size={25} color="black" />
-          </TouchableOpacity>
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.centeredContainer}>
-              <UserCard
-                key={receiverUID}
-                receiverUID={receiverUID}
-                message={messageDisplayed}
-              />
-              {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
+        <View style={styles.container}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.headerCloseButton}
+              onPress={onClose}
+            >
+              <AntDesign name="close" size={25} color="black" />
+            </TouchableOpacity>
+            <ScrollView
+              contentContainerStyle={styles.scrollViewContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.centeredContainer}>
+                <UserCard
+                  key={receiverUID}
+                  receiverUID={receiverUID}
+                  message={messageDisplayed}
+                />
+                {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
 
-              <View style={styles.you}>
-                <Text> YOU: </Text>
+                <View style={styles.you}>
+                  <Text> YOU: </Text>
+                </View>
+                <View style={styles.inputSection}>
+                  <TextInput
+                    style={styles.inputTextBox}
+                    placeholder="Please type the message you want to send to your fellow airies: "
+                    placeholderTextColor={"#C0C0C0"}
+                    multiline={true}
+                    scrollEnabled={true}
+                    spellCheck={true}
+                    textAlign={"left"}
+                    onChangeText={handleChange}
+                    value={message}
+                    onBlur={handleBlur}
+                  ></TextInput>
+                </View>
+                <View style={styles.sendSection}>
+                  <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={() => handleSend()}
+                  >
+                    <Feather
+                      name="message-circle"
+                      size={17}
+                      style={styles.messageCircle}
+                    />
+                    <Text style={styles.sendButtonText}>Send</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.inputSection}>
-                <TextInput
-                  style={styles.inputTextBox}
-                  placeholder="Please type the message you want to send to your fellow airies: "
-                  placeholderTextColor={"#C0C0C0"}
-                  multiline={true}
-                  scrollEnabled={true}
-                  spellCheck={true}
-                  textAlign={"left"}
-                  onChangeText={handleChange}
-                  value={message}
-                  onBlur={handleBlur}
-                ></TextInput>
-              </View>
-              <View style={styles.sendSection}>
-                <TouchableOpacity
-                  style={styles.sendButton}
-                  onPress={() => handleSend()}
-                >
-                  <Feather
-                    name="message-circle"
-                    size={17}
-                    style={styles.messageCircle}
-                  />
-                  <Text style={styles.sendButtonText}>Send</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
+            </ScrollView>
+          </View>
+          {/* </ImageBackground> */}
         </View>
-        {/* </ImageBackground> */}
-      </View>
-    </TouchableWithoutFeedback>
-
+      </TouchableWithoutFeedback>
+      <Modal
+        visible={lastMessageModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseLastMessageModal}
+      >
+        <View style={styles.oneMessageModalBackground}>
+          <View style={styles.oneMessageModalContent}>
+            <TouchableOpacity
+              style={styles.headerCloseButton}
+              onPress={handleCloseLastMessageModal}
+            >
+              <AntDesign name="close" size={25} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.oneMessageModalText}>
+              Thank you for uplifting your fellow airies! Hope you feel better
+              as well! Come back tomorrow to continue uplifting others.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+    </View>
     // </SafeAreaView>
   );
 };
@@ -564,6 +597,39 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
+  },
+
+  oneMessageModalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
+  oneMessageModalContent: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 40,
+    paddingTop: 15,
+    paddingBottom: 15,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: "85%",
+    alignItems: "center",
+    minHeight: "15%",
+    borderWidth: 4,
+    borderColor: "#BFD7EA",
+  },
+
+  oneMessageModalText: {
+    marginTop: 20,
+    fontSize: 13,
+    fontFamily: "Montserrat",
+    textAlign: "left",
+    color: "#0D1821",
   },
 
   //  profileTag: {

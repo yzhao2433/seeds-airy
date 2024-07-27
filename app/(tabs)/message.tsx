@@ -255,6 +255,7 @@ const SendMessage = () => {
   const [canSend, setCanSendMessage] = useState(true);
   const [currUserInList, setCurrUserInList] = useState(true);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [oneMessageLeft, setOneMessageLeft] = useState(false);
 
   const handleSendPress = () => setIsSendEnabled(true);
   const handleReceivePress = () => setIsSendEnabled(false);
@@ -262,7 +263,7 @@ const SendMessage = () => {
   const handleOpenModal = async (user, message) => {
     await checkChancesLeft();
     await checkSentBefore(user);
-    console.log("Checking request validity...");
+    console.log("Checking request validity sender...");
     // has at least 1 more chance to send a message and current users did not
     // recently send that person a message
     if (!currUserInList && canSend) {
@@ -307,6 +308,7 @@ const SendMessage = () => {
       (senderCheck) => {
         const userChancesLeft = senderCheck.data()?.messageLeft;
         const canSendMessage = userChancesLeft === 0 ? false : true;
+        setOneMessageLeft(userChancesLeft === 1 ? false : true);
         setCanSendMessage(canSendMessage);
       },
       (error) => {
@@ -418,6 +420,7 @@ const SendMessage = () => {
             receiverUID={selectedUser?.id}
             onClose={handleCloseModal}
             messageDisplayed={""}
+            messagesLeft={oneMessageLeft}
           />
         </Modal>
         <Modal

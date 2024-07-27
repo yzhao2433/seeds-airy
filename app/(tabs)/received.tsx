@@ -146,6 +146,7 @@ const ReceiveMessage = () => {
   const [canSend, setCanSendMessage] = useState(true);
   const [currUserInList, setCurrUserInList] = useState(true);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [oneMessageLeft, setOneMessageLeft] = useState(false);
 
   // Handles when current user sends someone else a message
   const handleOpenModal = async (user, message) => {
@@ -201,6 +202,7 @@ const ReceiveMessage = () => {
         const messageChanceLeft =
           currUserData?.messageLeft === 0 ? false : true;
         setCanSendMessage(messageChanceLeft);
+        setOneMessageLeft(currUserData?.messageLeft === 1 ? true : false);
 
         console.log("lin 207");
         // Check if there are any messages received
@@ -303,6 +305,7 @@ const ReceiveMessage = () => {
             receiverUID={selectedUser?.uid}
             onClose={handleCloseModal}
             messageDisplayed={messageRec}
+            oneMessageChance={oneMessageLeft}
           />
         </Modal>
         <Modal

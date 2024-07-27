@@ -35,6 +35,7 @@ function Login() {
     defaultValues,
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const onSubmit = async (values: FormValues) => {
     console.log(values);
@@ -48,8 +49,11 @@ function Login() {
       router.navigate("./(tabs)");
     } catch (e) {
       const error = e as AuthError;
-      console.log(e);
-      // Display some feedback to user
+      if (error.code === "auth/invalid-credential") {
+        setErrorMessage("Incorrect username or password. Please try again.");
+      } else {
+        setErrorMessage("An error has occured. Please try again.");
+      }
     }
   };
 
@@ -129,6 +133,10 @@ function Login() {
               />
             </TouchableOpacity>
           </View>
+
+          {errorMessage && (
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
+          )}
 
           <TouchableOpacity
             style={styles.loginButton}
@@ -230,6 +238,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 15,
     top: 19,
+  },
+
+  errorMessage: {
+    color: "red",
+    marginBottom: 5,
+    marginLeft: -15,
+    textAlign: "center",
   },
 
   signup: {

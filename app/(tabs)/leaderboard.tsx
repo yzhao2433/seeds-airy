@@ -17,25 +17,6 @@ import {
 import globalFont from "../../styles/globalfont";
 import { app, auth } from "../firebase";
 
-// const updateDailySend = async (userUID) => {
-//   const userRef = doc(usersRef, userUID);
-//   await updateDoc(userRef, { messageLeft: 10 });
-// };
-
-// const getTimeUntilEndOfDay = () => {
-//   const now = new Date();
-//   const endOfDay = new Date();
-//   endOfDay.setHours(0, 0, 3, 0);
-//   return endOfDay - now;
-// };
-
-// setTimeout(() => {
-//   updateDailySend(auth.currentUser?.uid);
-
-//   // Schedule subsequent runs every 1 min (original 24*60*60*1000)
-//   setInterval(updateDailySend, 3 * 60 * 1000);
-// }, getTimeUntilEndOfDay());
-
 const db = getFirestore(app);
 const userCollection = collection(db, "user");
 const avatars = [
@@ -131,6 +112,8 @@ const Leaderboard = () => {
   const [currUserRank, setCurrUserRank] = useState();
   const [loading, setLoading] = useState(true);
 
+  const [allUserUID, setAllUserUID] = useState<string[]>();
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
       userCollection,
@@ -152,7 +135,7 @@ const Leaderboard = () => {
             rank: user.data().rank ?? 0, // Initialize rank to 0 if it doesn't exist
           };
           tempUserScore.push(userData);
-
+          allUserUID?.push(user.id);
           // Add a rank field if it doesn't exist
           if (userData.rank === 0) {
             const userDoc = doc(db, "user", user.id);
@@ -199,6 +182,53 @@ const Leaderboard = () => {
     );
     return () => unsubscribe();
   }, []);
+
+  // source: https://blog.greenroots.info/how-to-use-javascript-scheduling-methods-with-react-hooks
+  const runAtEndOfDay = async (userUIDList) => {
+    const batch = writeBatch(db);
+    userUIDList.forEach((userUID) => {
+      const userDoc = doc(db, "user", userUID);
+      batch.update(userDoc, { messageLeft: 10 });
+    });
+    await batch.commit();
+  };
+
+  // Calculate the time remaining until the end of the day
+  function getTimeUntilEndOfDay() {
+    const now = new Date();
+    const endOfDay = new Date();
+    endOfDay.setHours(24, 0, 0, 0);
+    return endOfDay - now;
+  }
+
+  // will call this function at the end of the day
+  setTimeout(() => {
+    runAtEndOfDay(allUserUID);
+    // 24 hour * 60 min * 60 sec * 1000 millisec
+    setInterval(runAtEndOfDay, 24 * 60 * 60 * 1000);
+  }, getTimeUntilEndOfDay());
+
+  const runAtEndOfWeek = async (userUIDList) => {
+    const batch = writeBatch(db);
+    userUIDList.forEach((userUID) => {
+      const userDoc = doc(db, "user", userUID);
+      batch.update(userDoc, { rank: 0 });
+    });
+    await batch.commit();
+  };
+
+  function getTimeUntilEndOfWeek() {
+    const now = new Date();
+    const endOfWeek = new Date();
+    endOfWeek.setHours(24 * 7, 0, 0, 0);
+    return endOfWeek - now;
+  }
+
+  setTimeout(() => {
+    runAtEndOfWeek(allUserUID);
+    // 7 days * 24 hour * 60 min * 60 sec * 1000 millisec
+    setInterval(runAtEndOfWeek, 7 * 24 * 60 * 60 * 1000);
+  }, getTimeUntilEndOfWeek());
 
   if (loading) {
     return <Text>Loading...</Text>;

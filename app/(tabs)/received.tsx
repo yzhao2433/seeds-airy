@@ -202,7 +202,6 @@ const ReceiveMessage = () => {
         const messageChanceLeft =
           currUserData?.messageLeft === 0 ? false : true;
         setCanSendMessage(messageChanceLeft);
-        setOneMessageLeft(currUserData?.messageLeft === 1 ? true : false);
 
         console.log("lin 207");
         // Check if there are any messages received

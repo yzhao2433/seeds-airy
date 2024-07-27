@@ -169,12 +169,15 @@ const Profile = () => {
     setModalVisible(false);
   };
 
-  const handleAvatarSelect = (item: { id: number; source: any }) => {
+  const handleAvatarSelect = async (item: { id: number; source: any }) => {
+    const usersRef = collection(db, "user");
+    const currentUser = auth.currentUser?.uid;
+    const currUserDoc = doc(usersRef, currentUser);
     setSelectedAvatar(item);
+    await updateDoc(currUserDoc, { avatar: item.id });
     setavatarModalVisible(false);
   };
 
-  // Function to handle modal close
   const handleModalClose = () => {
     setavatarModalVisible(false);
   };
@@ -742,7 +745,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Optional: for a dimmed background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   thoughtModalContainer: {
     width: "80%",

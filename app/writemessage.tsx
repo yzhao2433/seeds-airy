@@ -19,6 +19,7 @@ import {
   updateDoc,
   getFirestore,
   collection,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth } from "./firebase";
 import { app } from "./firebase";
@@ -89,11 +90,11 @@ const getAvatarSource = (avatarId) => {
 };
 
 const moodIcons = {
-  1: <Ionicons name="thunderstorm-outline" size={20} color="#023567" />,
-  2: <Fontisto name="rain" size={20} color="#023567" />,
-  3: <AntDesign name="cloudo" size={20} color="#023567" />,
-  4: <Ionicons name="partly-sunny-outline" size={20} color="#023567" />,
-  5: <Feather name="sun" size={20} color="#023567" />,
+  1: <Ionicons name="thunderstorm-outline" size={21} color="#023567" />,
+  2: <Fontisto name="rain" size={21} color="#023567" />,
+  3: <AntDesign name="cloudo" size={21} color="#023567" />,
+  4: <Ionicons name="partly-sunny-outline" size={21} color="#023567" />,
+  5: <Feather name="sun" size={21} color="#023567" />,
 };
 
 const getBackgroundColor = (moodIconNumber) => {
@@ -117,51 +118,133 @@ const MoodIcon = ({ moodIconNumber }) => {
   const backgroundColor = getBackgroundColor(moodIconNumber);
 
   return (
-    <View style={[styles.moodIconContainer, { backgroundColor }]}>
+    <View style={[styles.moodiconcenter, { backgroundColor }]}>
       {moodIcons[moodIconNumber]}
     </View>
   );
 };
 
-const fetchReceiverData = async (receiverUID: string) => {
-  try {
-    console.log();
-    const receiverRef = doc(usersRef, receiverUID);
-    const receiverSnap = await getDoc(receiverRef);
-    if (receiverSnap.exists()) {
-      const receiverData = {
-        uid: receiverUID,
-        ...receiverSnap.data(),
-      };
-      console.log("line 100 ", receiverData);
-      return {
-        nickname: receiverData.nickname || "Unknown User",
-        firstThought:
-          receiverData.thoughts?.[0]?.thought || "User did not input a thought",
-        avatar: receiverData.avatar || 0,
-        messageToMe: receiverData.messagesReceived || "",
-        mood: receiverData.moods?.[0] || 0,
-        hobbies: receiverData.hobbies || "",
-      };
-    } else {
-      throw new Error("Receiver data not found");
-    }
-  } catch (error) {
-    console.error("Error getting the receiver data:", error);
-  }
-};
+// const fetchReceiverData = async (receiverUID: string) => {
+//   try {
+//     console.log();
+//     const receiverRef = doc(usersRef, receiverUID);
+//     const receiverSnap = await getDoc(receiverRef);
+//     if (receiverSnap.exists()) {
+//       const receiverData = {
+//         uid: receiverUID,
+//         ...receiverSnap.data(),
+//       };
+//       console.log("line 100 ", receiverData);
+//       return {
+//         nickname: receiverData.nickname || "Unknown User",
+//         firstThought:
+//           receiverData.thoughts?.[0]?.thought || "User did not input a thought",
+//         avatar: receiverData.avatar || 0,
+//         messageToMe: receiverData.messagesReceived || "",
+//         mood: receiverData.moods?.[0] || 0,
+//         hobbies: receiverData.hobbies || "",
+//       };
+//     } else {
+//       throw new Error("Receiver data not found");
+//     }
+//   } catch (error) {
+//     console.error("Error getting the receiver data:", error);
+//   }
+// };
 
-const UserCard = ({ receiverUID }) => {
+const UserCard = ({ receiverUID, message }) => {
   console.log("User Card received on writing message", receiverUID);
-  const [receiver, setReceiver] = useState(null);
+  const [receiver, setReceiver] = useState<{
+    uid: String;
+    nickname: string;
+    firstThought: string;
+    todayMood: number;
+    hobbies: string;
+  }>();
+  const receieverDocRef = doc(usersRef, receiverUID);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchReceiverData(receiverUID);
-      setReceiver(data);
+    const getTodayDate = () => {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${day}`;
     };
-    fetchData();
-  }, [receiverUID]);
+
+    const getTodayDateMon = () => {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${month}-${day}`;
+    };
+
+    const getDayOfWeek = () => {
+      const today = new Date();
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return daysOfWeek[today.getDay()];
+    };
+
+    const thisDayOfWeek = getDayOfWeek();
+    const todayDate = getTodayDate();
+    const todayDateMon = getTodayDateMon();
+    console.log("Today's day of week", thisDayOfWeek);
+    console.log("Today's Date:", todayDate);
+
+    const unsubscribe = onSnapshot(
+      receieverDocRef,
+      (receiver) => {
+        if (receiver.exists()) {
+          const messageDisplayed =
+            message.length == 0
+              ? receiver
+                  .data()
+                  .thoughts.find((thought) => thought.date === todayDateMon)
+                ? receiver
+                    .data()
+                    .thoughts.find((thought) => thought.date === todayDateMon)
+                    .thought
+                : "No thoughts available today"
+              : message;
+          const receiverData = {
+            uid: receiverUID,
+            nickname: receiver.data().nickname || "Unknown User",
+            firstThought: messageDisplayed,
+
+            todayMood:
+              receiver.data().moods &&
+              receiver
+                .data()
+                .moods.find(
+                  (mood) =>
+                    mood.date === todayDate && mood.dayOfWeek === thisDayOfWeek
+                )
+                ? receiver
+                    .data()
+                    .moods.find(
+                      (mood) =>
+                        mood.date === todayDate &&
+                        mood.dayOfWeek === thisDayOfWeek
+                    ).moodIcon
+                : null,
+            avatar: receiver.data().avatar,
+            hobbies: receiver.data().hobbies || "",
+          };
+          console.log(
+            "line 99 ",
+            receiver.data().moods.find((mood) => mood.date === todayDate)
+          );
+          console.log("full mood list ", receiver.data().moods);
+          console.log("line 100 ", receiverData);
+          setReceiver(receiverData);
+        } else {
+          throw new Error("Receiver data not found");
+        }
+      },
+      (error) => {
+        console.error("Error listening to receiver ", error);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
   if (!receiver) {
     return <Text>Loading...</Text>; // or a loading spinner
@@ -169,29 +252,16 @@ const UserCard = ({ receiverUID }) => {
 
   const avatarSource = getAvatarSource(receiver.avatar);
 
-  const getTodayDate = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
-    const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
-    return `${month}-${day}`;
-  };
+  // const firstThought =
+  //   receiver.thoughts &&
+  //   receiver.thoughts.find((thought) => thought.date === todayDate)
+  //     ? receiver.thoughts.find((thought) => thought.date === todayDate).thought
+  //     : "No thoughts available today";
 
-  const todayDate = getTodayDate();
+  // console.log("Today's Thoughts:", firstThought);
 
-  const firstThought =
-    receiver.thoughts &&
-    receiver.thoughts.find((thought) => thought.date === todayDate)
-      ? receiver.thoughts.find((thought) => thought.date === todayDate).thought
-      : "No thoughts available today";
-
-  console.log("Today's Thoughts:", firstThought);
-
-  const todayMood =
-    receiver.moods && receiver.moods.find((mood) => mood.date === todayDate);
-
-  console.log("Today's Date:", todayDate);
-  console.log("User's Moods:", receiver.moods);
-  console.log("Current Mood:", todayMood);
+  // const todayMood =
+  //   receiver.moods && receiver.moods.find((mood) => mood.date === todayDate);
 
   return (
     <View style={styles.profileContainer}>
@@ -204,29 +274,35 @@ const UserCard = ({ receiverUID }) => {
           <Text style={styles.profileTag}>{receiver.hobbies}</Text>
         </View>
         <View style={styles.moodIconsContainer}>
-          {todayMood ? (
+          {receiver.todayMood ? (
             <View
               style={[
-                styles.circle,
-                { backgroundColor: getBackgroundColor(todayMood.moodIcon) },
+                styles.moodbackground,
+                { backgroundColor: getBackgroundColor(receiver.todayMood) },
               ]}
             >
-              <MoodIcon moodIconNumber={todayMood.moodIcon} />
+              <MoodIcon moodIconNumber={receiver.todayMood} />
             </View>
           ) : (
             <View style={styles.placeholderCircle} />
           )}
         </View>
       </View>
-      <ScrollView style={styles.thoughtsContainer}>
+      <View>
         <Text style={styles.profileThought}>{receiver.firstThought}</Text>
-      </ScrollView>
+      </View>
     </View>
   );
 };
 
-export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
+export const WritingMessage = ({
+  senderUID,
+  receiverUID,
+  onClose,
+  messageDisplayed,
+}) => {
   const [message, setMessage] = useState("");
+  const messageToDisplay = messageDisplayed;
   const params = useLocalSearchParams();
   // const { senderUID, receiverUID, onClose } = params;
   //const message = "";
@@ -255,14 +331,17 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
       const senderSnap = await getDoc(senderRef);
       if (senderSnap.exists()) {
         const senderCurrData = senderSnap.data();
-        console.log("line 185 ", senderCurrData);
         const senderMessageLeft = senderCurrData?.messageLeft || 1;
-        console.log("line 187 ", senderMessageLeft);
         const numMessageSent = 10 - senderMessageLeft + 1;
-        console.log("line 189 ", numMessageSent);
         const addedNum = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
         const newScore = senderCurrData?.score + addedNum;
-        console.log("line 191 ", newScore);
+        // const messagesReceived = receiverSnap.data()?.messageReceived;
+        // if (messagesReceived.length > 0) {
+        //   const messages = messagesReceived.map((entry) => entry.message);
+        //   setReceivedMessages(messages).filter(
+        //     (entry) => entry.senderID == senderID
+        //   );
+        // }
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
         await updateDoc(senderRef, { score: newScore });
         const sendTime = Date();
@@ -295,42 +374,53 @@ export const WritingMessage = ({ senderUID, receiverUID, onClose }) => {
         > */}
       <View style={styles.container}>
         <View style={styles.modalContent}>
-          <UserCard key={receiverUID} receiverUID={receiverUID} />
-          {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
           <TouchableOpacity style={styles.headerCloseButton} onPress={onClose}>
             <AntDesign name="close" size={25} color="black" />
           </TouchableOpacity>
-
-          <View style={styles.you}>
-            <Text> YOU: </Text>
-          </View>
-          <View style={styles.inputSection}>
-            <TextInput
-              style={styles.inputTextBox}
-              placeholder="Please type the message you want to send to your fellow airies: "
-              placeholderTextColor={"#C0C0C0"}
-              multiline={true}
-              scrollEnabled={true}
-              spellCheck={true}
-              textAlign={"left"}
-              onChangeText={handleChange}
-              value={message}
-              onBlur={handleBlur}
-            ></TextInput>
-          </View>
-          <View style={styles.sendSection}>
-            <TouchableOpacity
-              style={styles.sendButton}
-              onPress={() => handleSend()}
-            >
-              <Feather
-                name="message-circle"
-                size={17}
-                style={styles.messageCircle}
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.centeredContainer}>
+              <UserCard
+                key={receiverUID}
+                receiverUID={receiverUID}
+                message={messageDisplayed}
               />
-              <Text style={styles.sendButtonText}>Send</Text>
-            </TouchableOpacity>
-          </View>
+              {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
+
+              <View style={styles.you}>
+                <Text> YOU: </Text>
+              </View>
+              <View style={styles.inputSection}>
+                <TextInput
+                  style={styles.inputTextBox}
+                  placeholder="Please type the message you want to send to your fellow airies: "
+                  placeholderTextColor={"#C0C0C0"}
+                  multiline={true}
+                  scrollEnabled={true}
+                  spellCheck={true}
+                  textAlign={"left"}
+                  onChangeText={handleChange}
+                  value={message}
+                  onBlur={handleBlur}
+                ></TextInput>
+              </View>
+              <View style={styles.sendSection}>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={() => handleSend()}
+                >
+                  <Feather
+                    name="message-circle"
+                    size={17}
+                    style={styles.messageCircle}
+                  />
+                  <Text style={styles.sendButtonText}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
         </View>
         {/* </ImageBackground> */}
       </View>
@@ -361,19 +451,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
     flexDirection: "column",
-    paddingHorizontal: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerCloseButton: {
     position: "absolute",
     top: 10,
     right: 10,
-    zIndex: 1,
+    zIndex: 5,
+  },
+  scrollViewContent: {
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+    justifyContent: "center",
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   profileContainer: {
     flexDirection: "column",
     alignItems: "center",
     backgroundColor: "#FFF",
-    paddingHorizontal: 7,
+    paddingHorizontal: 20,
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: {
@@ -382,8 +482,10 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
-    height: "28%",
     marginTop: 30,
+    paddingVertical: 10,
+    alignSelf: "center",
+    position: "relative",
   },
   row: {
     flexDirection: "row",
@@ -393,8 +495,8 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   profileImage: {
-    width: 45,
-    height: 45,
+    width: 40,
+    height: 40,
     borderRadius: 50,
   },
   profileUser: {
@@ -409,22 +511,31 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 17.71,
   },
+
+  moodbackground: {
+    width: 38,
+    height: 38,
+    borderRadius: 50,
+    alignItems: "center",
+    padding: 0,
+    justifyContent: "center",
+    borderWidth: 0.2,
+    borderColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    opacity: 0.7,
+  },
+
   you: {
     color: "black",
-    fontSize: 15,
+    fontSize: 20,
     fontFamily: "Nunito",
     fontWeight: "700",
     lineHeight: 18.09,
-    marginVertical: 25,
-  },
-
-  thoughtsContainer: {
-    flex: 1,
-    position: "absolute",
-    left: 20,
-    top: 75,
-    height: 51,
-    paddingVertical: 0,
+    marginTop: 30,
+    marginBottom: 5,
   },
 
   profileThought: {
@@ -434,24 +545,21 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat",
     fontWeight: "400",
     lineHeight: 17.71,
-    width: "90%",
+    position: "relative",
+    width: 231,
   },
   profileInfoContainer: {
     flex: 1,
-    marginLeft: 65,
+    marginLeft: 50,
   },
   inputSection: {
-    flex: 6,
+    flex: 1,
+    marginBottom: "60%",
   },
   inputTextBox: {
-    borderColor: "#ddd",
-    borderWidth: 1,
-    borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
     textAlignVertical: "top",
-    flex: 1,
-    backgroundColor: "transparent",
     color: "black",
     fontSize: 13,
     padding: 10,
@@ -462,7 +570,8 @@ const styles = StyleSheet.create({
 
   sendSection: {
     flex: 1,
-    alignSelf: "flex-end",
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
 
   sendButton: {
@@ -470,14 +579,14 @@ const styles = StyleSheet.create({
     borderRadius: 33.02,
     paddingVertical: 5,
     paddingHorizontal: 10,
-    position: "absolute",
-    bottom: 0,
-    right: 0,
     borderWidth: 0.66,
     borderColor: "white",
     width: 85,
     height: 32,
     flexDirection: "row",
+    // position: 'absolute',
+    // bottom: 10, // Distance from the bottom of the modal
+    // right: 10,
   },
 
   sendButtonText: {
@@ -502,18 +611,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     marginVertical: 10,
-    marginLeft: "auto",
-    color: "#858494",
   },
+
   placeholderCircle: {
-    width: 45,
-    height: 45,
+    width: 38,
+    height: 38,
     borderRadius: 50,
-    backgroundColor: "#D3D3D3",
-    borderColor: "white",
-    borderWidth: 1,
+    backgroundColor: "#F5F5F5",
     right: "auto",
     padding: 0,
+    borderWidth: 0.2,
+    borderColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
   },
 
   //  profileTag: {

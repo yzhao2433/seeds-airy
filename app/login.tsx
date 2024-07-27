@@ -18,6 +18,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import globalFont from "../styles/globalfont";
 import { useState } from "react";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 interface FormValues {
   email: string;
@@ -137,8 +138,7 @@ function Login() {
             </Text>
           </TouchableOpacity>
 
-          <Button title="Log In" onPress={handleSubmit(onSubmit)} />
-          <Text style={{ textAlign: "center" }}>
+          <Text style={styles.signup}>
             Don't have an account? <Link href="signup">Sign Up</Link>
           </Text>
         </View>
@@ -229,6 +229,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 15,
     top: 19,
+  },
+
+  signup: {
+    textAlign: "center",
+    marginBottom: hp("-5%"),
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    color: "blue",
   },
 });
 

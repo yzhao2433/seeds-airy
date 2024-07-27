@@ -14,7 +14,13 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { AuthError, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { auth } from "./firebase";
 import { app } from "./firebase";
 import { Controller, useForm } from "react-hook-form";
@@ -117,6 +123,10 @@ function SignUp() {
       );
       const user = userCredential.user;
 
+      const usersRef = collection(db, "user");
+      const usersSnapshot = await getDocs(usersRef);
+      const users = usersSnapshot.docs;
+
       const userDocRef = doc(db, "user", user.uid);
       await setDoc(userDocRef, {
         email: data.email,
@@ -130,6 +140,7 @@ function SignUp() {
         messageLeft: 10,
         score: 0,
         messageLastSent: "",
+        rank: users.length + 1,
       });
     } catch (error) {
       console.error("Error creating user: ", error);

@@ -134,9 +134,7 @@ function Login() {
             </TouchableOpacity>
           </View>
 
-          {errorMessage && (
-            <Text style={styles.errorMessage}>{errorMessage}</Text>
-          )}
+          {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
           <TouchableOpacity
             style={styles.loginButton}
@@ -238,13 +236,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 15,
     top: 19,
-  },
-
-  errorMessage: {
-    color: "red",
-    marginBottom: 5,
-    marginLeft: -15,
-    textAlign: "center",
   },
 
   signup: {

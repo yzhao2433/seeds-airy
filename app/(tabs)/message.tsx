@@ -260,6 +260,7 @@ const SendMessage = () => {
   const handleReceivePress = () => setIsSendEnabled(false);
   // Handles when current user sends someone else a message
   const handleOpenModal = async (user, message) => {
+    await checkChancesLeft();
     await checkSentBefore(user);
     console.log("Checking request validity...");
     // has at least 1 more chance to send a message and current users did not
@@ -278,9 +279,9 @@ const SendMessage = () => {
   // user is an object with fields about the user current user want to send a message to
   const checkSentBefore = (user) => {
     // check if I am on that user's messageRecieved field
-    console.log("checkRequestValid is called ");
+    console.log("checkSentBefore is called ", user);
     const unsubscribe = onSnapshot(
-      doc(usersRef, user.uid),
+      doc(usersRef, user.id),
       (receiverCheck) => {
         console.log("receiverCheck is called ");
         const receiverMessageList =
@@ -305,7 +306,20 @@ const SendMessage = () => {
     return () => unsubscribe();
   };
 
-  const checkChancesLeft = async () => {};
+  const checkChancesLeft = () => {
+    const unsubscribe = onSnapshot(
+      doc(usersRef, auth.currentUser?.uid),
+      (senderCheck) => {
+        const userChancesLeft = senderCheck.data()?.messageLeft;
+        const canSendMessage = userChancesLeft === 0 ? false : true;
+        setCanSendMessage(canSendMessage);
+      },
+      (error) => {
+        console.error("Error setting listener to current user");
+      }
+    );
+    return () => unsubscribe();
+  };
 
   useEffect(() => {
     fetchData();
@@ -410,6 +424,34 @@ const SendMessage = () => {
             onClose={handleCloseModal}
             messageDisplayed={""}
           />
+        </Modal>
+        <Modal
+          visible={errorModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={handleExitErrorModal}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.headerCloseButton}
+                onPress={handleExitErrorModal}
+              >
+                <AntDesign name="close" size={25} color="black" />
+              </TouchableOpacity>
+              {canSend ? (
+                <Text style={styles.modalText}>
+                  You have recently sent this user a message. Connect with
+                  another airy on this app!
+                </Text>
+              ) : (
+                <Text style={styles.modalText}>
+                  Great work on sending 10 messages today and uplifting fellow
+                  airies! Please come back tomorrow to send more!
+                </Text>
+              )}
+            </View>
+          </View>
         </Modal>
       </View>
     </ImageBackground>
@@ -655,18 +697,45 @@ const styles = StyleSheet.create({
     left: 1.89,
     top: 2.38,
   },
+
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
+
   modalContent: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    width: "90%",
-    maxHeight: "80%",
+    backgroundColor: "#fff",
+    paddingHorizontal: 40,
+    paddingTop: 15,
+    paddingBottom: 15,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: "85%",
+    alignItems: "center",
+    minHeight: "15%",
+    borderWidth: 4,
+    borderColor: "#BFD7EA",
+  },
+
+  modalText: {
+    marginTop: 20,
+    fontSize: 13,
+    fontFamily: "Montserrat",
+    textAlign: "left",
+    color: "#0D1821",
+  },
+
+  headerCloseButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 5,
   },
 });
 

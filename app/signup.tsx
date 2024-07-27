@@ -30,6 +30,7 @@ import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { SubmitHandler } from "react-hook-form";
 import globalFont from "../styles/globalfont";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { FirebaseError } from "firebase/app";
 
 interface FormValues {
   email: string;
@@ -109,6 +110,8 @@ function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const { control, handleSubmit, formState } = useForm();
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [errorPW, setErrorPW] = useState<string | null>(null);
+  const [errorUsername, setErrorUsername] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (!selectedAvatar) {
@@ -142,8 +145,17 @@ function SignUp() {
         messageLastSent: "",
         rank: users.length + 1,
       });
-    } catch (error) {
-      console.error("Error creating user: ", error);
+    } catch (e) {
+      console.log(e);
+      const error = e as FirebaseError;
+      if (error.code === "auth/email-already-in-use") {
+        setErrorUsername(
+          "Email already in Use. Please choose a different email."
+        );
+      }
+      if (error.code === "auth/weak-password") {
+        setErrorPW("Password should be at least 6 characters long.");
+      }
     }
   };
 
@@ -179,6 +191,8 @@ function SignUp() {
             />
           )}
         />
+        {errorUsername && <Text style={styles.error}>{errorUsername}</Text>}
+
         {typeof formState.errors.email?.message === "string" && (
           <Text style={styles.error}>{formState.errors.email?.message}</Text>
         )}
@@ -214,6 +228,8 @@ function SignUp() {
             />
           </TouchableOpacity>
         </View>
+
+        {errorPW && <Text style={styles.error}>{errorPW}</Text>}
         {typeof formState.errors.password?.message === "string" && (
           <Text style={styles.error}>{formState.errors.password?.message}</Text>
         )}

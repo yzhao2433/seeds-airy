@@ -118,11 +118,9 @@ const Home = () => {
   const [placeholder, setPlaceholder] = useState("Write your thoughts here...");
   const [textAreaBgColor, setTextAreaBgColor] = useState("white");
   const [buttonBgColor, setButtonBgColor] = useState({
-    skip: "#FFE785",
     submit: "#FFE785",
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isSkipDisabled, setIsSkipDisabled] = useState(false);
   const [messageLeft, setMessageLeft] = useState(0);
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
@@ -238,7 +236,6 @@ const Home = () => {
     updateUserThoughts();
     setTextAreaBgColor("#FFFFFF");
     setButtonBgColor({ ...buttonBgColor, submit: "#FFE785" });
-    setIsSkipDisabled(true);
     setIsModalVisible(true);
   };
 
@@ -246,12 +243,6 @@ const Home = () => {
     setIsModalVisible(false);
   };
 
-  const handleThoughtSkip = () => {
-    setThought("");
-    setPlaceholder("Skipped thoughts now, come back later!");
-    setTextAreaBgColor("#D3D3D3");
-    setButtonBgColor({ ...buttonBgColor, skip: "gray" });
-  };
 
   return (
     <ImageBackground
@@ -369,13 +360,6 @@ const Home = () => {
           />
           <View style={styles.buttonContainer}>
             <View style={styles.placeholder}>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: buttonBgColor.skip }]}
-                onPress={handleThoughtSkip}
-                disabled={isSkipDisabled}
-              >
-                <Text style={styles.buttonText}>Skip</Text>
-              </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: buttonBgColor.submit }]}

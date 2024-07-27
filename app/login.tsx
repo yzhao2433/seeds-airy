@@ -45,6 +45,7 @@ function Login() {
         values.password
       );
       console.log(user);
+      router.navigate("./(tabs)");
     } catch (e) {
       const error = e as AuthError;
       console.log(e);

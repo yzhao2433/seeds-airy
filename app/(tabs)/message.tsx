@@ -137,13 +137,6 @@ const UserCard = ({ user, onSend }) => {
 
   const avatarSource = getAvatarSource(receiver?.avatar);
 
-  const handleSend = () =>
-    router.navigate({
-      pathname: "/writemessage",
-      params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
-    });
-  const receieverDocRef = user.id;
-
   useEffect(() => {
     const getTodayDate = () => {
       const today = new Date();
@@ -167,8 +160,6 @@ const UserCard = ({ user, onSend }) => {
     const thisDayOfWeek = getDayOfWeek();
     const todayDate = getTodayDate();
     const todayDateMon = getTodayDateMon();
-    console.log("Today's day of week", thisDayOfWeek);
-    console.log("Today's Date:", todayDate);
 
     const receieverDocRef = doc(usersRef, user.id);
     const unsubscribe = onSnapshot(
@@ -205,8 +196,6 @@ const UserCard = ({ user, onSend }) => {
             avatar: receiver.data().avatar,
             hobbies: receiver.data().hobbies || "",
           };
-          console.log("full mood list ", receiver.data().moods);
-          console.log("line 100 ", receiverData);
           setReceiver(receiverData);
         } else {
           throw new Error("Receiver data not found");
@@ -263,15 +252,60 @@ const SendMessage = () => {
   const [isSendEnabled, setIsSendEnabled] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedMood, setSelectedMood] = useState(null);
+  const [canSend, setCanSendMessage] = useState(true);
+  const [currUserInList, setCurrUserInList] = useState(true);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
 
   const handleSendPress = () => setIsSendEnabled(true);
   const handleReceivePress = () => setIsSendEnabled(false);
-  const handleOpenModal = (user) => {
-    setSelectedUser(user);
-    setIsModalVisible(true);
+  // Handles when current user sends someone else a message
+  const handleOpenModal = async (user, message) => {
+    await checkSentBefore(user);
+    console.log("Checking request validity...");
+    // has at least 1 more chance to send a message and current users did not
+    // recently send that person a message
+    if (!currUserInList && canSend) {
+      setSelectedUser(user);
+      setIsModalVisible(true);
+      setErrorModalVisible(false);
+    } else {
+      setErrorModalVisible(true);
+    }
   };
   const handleCloseModal = () => setIsModalVisible(false);
+  const handleExitErrorModal = () => setErrorModalVisible(false);
+
+  // user is an object with fields about the user current user want to send a message to
+  const checkSentBefore = (user) => {
+    // check if I am on that user's messageRecieved field
+    console.log("checkRequestValid is called ");
+    const unsubscribe = onSnapshot(
+      doc(usersRef, user.uid),
+      (receiverCheck) => {
+        console.log("receiverCheck is called ");
+        const receiverMessageList =
+          receiverCheck.data()?.messagesReceived || [];
+        const currUserSeen = receiverMessageList.some((messageEntry) => {
+          return messageEntry.senderID == auth.currentUser?.uid;
+        });
+        console.log(" their message received list ", receiverMessageList);
+        console.log("my id ", auth.currentUser?.uid);
+        console.log(" already sent message? ", currUserSeen);
+        setCurrUserInList(currUserSeen);
+      },
+      (error) => {
+        console.error(
+          "Error checking the messageReceived field of ",
+          user.uid,
+          " ",
+          error
+        );
+      }
+    );
+    return () => unsubscribe();
+  };
+
+  const checkChancesLeft = async () => {};
 
   useEffect(() => {
     fetchData();
@@ -315,7 +349,6 @@ const SendMessage = () => {
       }));
 
       setUsersData(formattedUserData);
-      console.log(formattedUserData);
       setLoading(false);
     } catch (error) {
       console.error("Error getting documents: ", error);

@@ -105,8 +105,6 @@ const Profile = () => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       const userDocRef = doc(db, "user", currentUser.uid);
-      console.log("Setting up real-time listener...");
-
       const unsubscribe = onSnapshot(
         userDocRef,
         (doc) => {
@@ -115,7 +113,6 @@ const Profile = () => {
             setUserData(userData);
             setThoughts(userData.thoughts || []);
             setMoods(userData.moods || []);
-            console.log("User data updated:", userData);
           } else {
             console.log("User document not found");
           }
@@ -131,8 +128,6 @@ const Profile = () => {
       console.log("Current user not found");
     }
   }, []);
-
-  console.log("Current user data:", userData);
 
   const moodIcons = {
     1: <Ionicons name="thunderstorm-outline" size={20} color="#023567" />,

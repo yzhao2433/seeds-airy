@@ -8,6 +8,7 @@ import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -65,10 +66,27 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="received"
+          options={{
+            tabBarIcon: ({ color, focused }) => (
+              <MaterialCommunityIcons
+                name="email-receive"
+                color={color}
+                style={styles.icon}
+                size={33}
+              />
+            ),
+          }}
+        ></Tabs.Screen>
+        <Tabs.Screen
           name="profile"
           options={{
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'person' : 'person-outline'} color={color} style={styles.icon}/>
+              <TabBarIcon
+                name={focused ? "person" : "person-outline"}
+                color={color}
+                style={styles.icon}
+              />
             ),
           }}
         />

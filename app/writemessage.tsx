@@ -124,7 +124,36 @@ const MoodIcon = ({ moodIconNumber }) => {
   );
 };
 
+// const fetchReceiverData = async (receiverUID: string) => {
+//   try {
+//     console.log();
+//     const receiverRef = doc(usersRef, receiverUID);
+//     const receiverSnap = await getDoc(receiverRef);
+//     if (receiverSnap.exists()) {
+//       const receiverData = {
+//         uid: receiverUID,
+//         ...receiverSnap.data(),
+//       };
+//       console.log("line 100 ", receiverData);
+//       return {
+//         nickname: receiverData.nickname || "Unknown User",
+//         firstThought:
+//           receiverData.thoughts?.[0]?.thought || "User did not input a thought",
+//         avatar: receiverData.avatar || 0,
+//         messageToMe: receiverData.messagesReceived || "",
+//         mood: receiverData.moods?.[0] || 0,
+//         hobbies: receiverData.hobbies || "",
+//       };
+//     } else {
+//       throw new Error("Receiver data not found");
+//     }
+//   } catch (error) {
+//     console.error("Error getting the receiver data:", error);
+//   }
+// };
+
 const UserCard = ({ receiverUID, message }) => {
+  console.log("User Card received on writing message", receiverUID);
   const [receiver, setReceiver] = useState<{
     uid: String;
     nickname: string;
@@ -157,6 +186,8 @@ const UserCard = ({ receiverUID, message }) => {
     const thisDayOfWeek = getDayOfWeek();
     const todayDate = getTodayDate();
     const todayDateMon = getTodayDateMon();
+    console.log("Today's day of week", thisDayOfWeek);
+    console.log("Today's Date:", todayDate);
 
     const unsubscribe = onSnapshot(
       receieverDocRef,
@@ -197,6 +228,12 @@ const UserCard = ({ receiverUID, message }) => {
             avatar: receiver.data().avatar,
             hobbies: receiver.data().hobbies || "",
           };
+          console.log(
+            "line 99 ",
+            receiver.data().moods.find((mood) => mood.date === todayDate)
+          );
+          console.log("full mood list ", receiver.data().moods);
+          console.log("line 100 ", receiverData);
           setReceiver(receiverData);
         } else {
           throw new Error("Receiver data not found");
@@ -214,6 +251,17 @@ const UserCard = ({ receiverUID, message }) => {
   }
 
   const avatarSource = getAvatarSource(receiver.avatar);
+
+  // const firstThought =
+  //   receiver.thoughts &&
+  //   receiver.thoughts.find((thought) => thought.date === todayDate)
+  //     ? receiver.thoughts.find((thought) => thought.date === todayDate).thought
+  //     : "No thoughts available today";
+
+  // console.log("Today's Thoughts:", firstThought);
+
+  // const todayMood =
+  //   receiver.moods && receiver.moods.find((mood) => mood.date === todayDate);
 
   return (
     <View style={styles.profileContainer}>
@@ -252,12 +300,17 @@ export const WritingMessage = ({
   receiverUID,
   onClose,
   messageDisplayed,
-  oneMessageChance,
 }) => {
   const [message, setMessage] = useState("");
-  const [lastMessageModal, setLastMessageModal] = useState(false);
+  const messageToDisplay = messageDisplayed;
+  const params = useLocalSearchParams();
+  // const { senderUID, receiverUID, onClose } = params;
+  //const message = "";
+  console.log("senderID is for writing message ", senderUID);
+  console.log("receiverID is for writing message ", receiverUID);
   const addRecord = async (senderID, receiverID) => {
     try {
+      console.log("addRecord called ");
       const receiverRef = doc(usersRef, receiverID);
       const receiverSnap = await getDoc(receiverRef);
       if (receiverSnap.exists()) {
@@ -282,6 +335,13 @@ export const WritingMessage = ({
         const numMessageSent = 10 - senderMessageLeft + 1;
         const addedNum = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
         const newScore = senderCurrData?.score + addedNum;
+        // const messagesReceived = receiverSnap.data()?.messageReceived;
+        // if (messagesReceived.length > 0) {
+        //   const messages = messagesReceived.map((entry) => entry.message);
+        //   setReceivedMessages(messages).filter(
+        //     (entry) => entry.senderID == senderID
+        //   );
+        // }
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
         await updateDoc(senderRef, { score: newScore });
         const sendTime = Date();
@@ -294,13 +354,7 @@ export const WritingMessage = ({
 
   const handleSend = () => {
     addRecord(senderUID, receiverUID);
-    setLastMessageModal(oneMessageChance ? true : false);
-    console.log("one last message modal set visible ", oneMessageChance);
     onClose();
-  };
-
-  const handleCloseLastMessageModal = () => {
-    setLastMessageModal(false);
   };
 
   const handleBlur = () => {
@@ -313,90 +367,65 @@ export const WritingMessage = ({
 
   return (
     // <SafeAreaView>
-    <View>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        {/* <ImageBackground
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {/* <ImageBackground
         source={require("../../assets/images/writingCloud.png")}
         style={styles.background}
         > */}
-        <View style={styles.container}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity
-              style={styles.headerCloseButton}
-              onPress={onClose}
-            >
-              <AntDesign name="close" size={25} color="black" />
-            </TouchableOpacity>
-            <ScrollView
-              contentContainerStyle={styles.scrollViewContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.centeredContainer}>
-                <UserCard
-                  key={receiverUID}
-                  receiverUID={receiverUID}
-                  message={messageDisplayed}
-                />
-                {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
+      <View style={styles.container}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.headerCloseButton} onPress={onClose}>
+            <AntDesign name="close" size={25} color="black" />
+          </TouchableOpacity>
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.centeredContainer}>
+              <UserCard
+                key={receiverUID}
+                receiverUID={receiverUID}
+                message={messageDisplayed}
+              />
+              {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
 
-                <View style={styles.you}>
-                  <Text> YOU: </Text>
-                </View>
-                <View style={styles.inputSection}>
-                  <TextInput
-                    style={styles.inputTextBox}
-                    placeholder="Please type the message you want to send to your fellow airies: "
-                    placeholderTextColor={"#C0C0C0"}
-                    multiline={true}
-                    scrollEnabled={true}
-                    spellCheck={true}
-                    textAlign={"left"}
-                    onChangeText={handleChange}
-                    value={message}
-                    onBlur={handleBlur}
-                  ></TextInput>
-                </View>
-                <View style={styles.sendSection}>
-                  <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={() => handleSend()}
-                  >
-                    <Feather
-                      name="message-circle"
-                      size={17}
-                      style={styles.messageCircle}
-                    />
-                    <Text style={styles.sendButtonText}>Send</Text>
-                  </TouchableOpacity>
-                </View>
+              <View style={styles.you}>
+                <Text> YOU: </Text>
               </View>
-            </ScrollView>
-          </View>
-          {/* </ImageBackground> */}
+              <View style={styles.inputSection}>
+                <TextInput
+                  style={styles.inputTextBox}
+                  placeholder="Please type the message you want to send to your fellow airies: "
+                  placeholderTextColor={"#C0C0C0"}
+                  multiline={true}
+                  scrollEnabled={true}
+                  spellCheck={true}
+                  textAlign={"left"}
+                  onChangeText={handleChange}
+                  value={message}
+                  onBlur={handleBlur}
+                ></TextInput>
+              </View>
+              <View style={styles.sendSection}>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={() => handleSend()}
+                >
+                  <Feather
+                    name="message-circle"
+                    size={17}
+                    style={styles.messageCircle}
+                  />
+                  <Text style={styles.sendButtonText}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
         </View>
-      </TouchableWithoutFeedback>
-      <Modal
-        visible={lastMessageModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={handleCloseLastMessageModal}
-      >
-        <View style={styles.oneMessageModalBackground}>
-          <View style={styles.oneMessageModalContent}>
-            <TouchableOpacity
-              style={styles.headerCloseButton}
-              onPress={handleCloseLastMessageModal}
-            >
-              <AntDesign name="close" size={25} color="black" />
-            </TouchableOpacity>
-            <Text style={styles.oneMessageModalText}>
-              Thank you for uplifting your fellow airies! Hope you feel better
-              as well! Come back tomorrow to continue uplifting others.
-            </Text>
-          </View>
-        </View>
-      </Modal>
-    </View>
+        {/* </ImageBackground> */}
+      </View>
+    </TouchableWithoutFeedback>
+
     // </SafeAreaView>
   );
 };
@@ -598,86 +627,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
   },
-
-  oneMessageModalBackground: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-
-  oneMessageModalContent: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 40,
-    paddingTop: 15,
-    paddingBottom: 15,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    elevation: 5,
-    width: "85%",
-    alignItems: "center",
-    minHeight: "15%",
-    borderWidth: 4,
-    borderColor: "#BFD7EA",
-  },
-
-  oneMessageModalText: {
-    marginTop: 20,
-    fontSize: 13,
-    fontFamily: "Montserrat",
-    textAlign: "left",
-    color: "#0D1821",
-  },
-
-  //  profileTag: {
-  //  color: "#858494",
-  //  fontSize: 12.65,
-  //  fontFamily: "Montserrat",
-  //  fontStyle: "italic",
-  //  fontWeight: "400",
-  //  lineHeight: 17.71,
-  //  top: "10%",
-  //  },
-
-  //  profileHeader: {
-  //  position: "relative",
-  //  marginRight: 10,
-  //  },
-
-  //  profileInfo: {
-  //  flex: 1,
-  //  },
-
-  //  headerCloseButton: {
-  //  textAlign: "right",
-  //  padding: 5,
-  //  position: "absolute",
-  //  right: "3%",
-  //  top: "5%",
-  //  },
-
-  //  headerCloseText: {
-  //     position: "absolute",
-  //     top: 5,
-  //     right: 5,
-  //     backgroundColor: "#fff",
-  //     width: 30,
-  //     height: 30,
-  //     alignItems: "center",
-  //     justifyContent: "center",
-  //  },
-
-  //  textTitle: {
-  //  fontSize: 24,
-  //  fontWeight: "bold",
-  //  marginVertical: 5,
-  //  paddingVertical: 15,
-  //  textAlign: "center",
-  //  fontFamily: "Nunito-Bold",
-  //  },
 });
 
 export default WritingMessage;

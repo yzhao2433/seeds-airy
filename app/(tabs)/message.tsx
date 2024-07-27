@@ -420,7 +420,6 @@ const SendMessage = () => {
             receiverUID={selectedUser?.id}
             onClose={handleCloseModal}
             messageDisplayed={""}
-            messagesLeft={oneMessageLeft}
           />
         </Modal>
         <Modal

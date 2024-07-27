@@ -305,7 +305,6 @@ const ReceiveMessage = () => {
             receiverUID={selectedUser?.uid}
             onClose={handleCloseModal}
             messageDisplayed={messageRec}
-            oneMessageChance={oneMessageLeft}
           />
         </Modal>
         <Modal

@@ -22,7 +22,7 @@ import {
 import { app } from "../firebase";
 // yarn add react-native-vector-icons
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { Feather, AntDesign } from "@expo/vector-icons";
+import { Feather, AntDesign, Ionicons, Fontisto } from "@expo/vector-icons";
 
 import { auth } from "../firebase";
 const db = getFirestore(app);
@@ -30,7 +30,6 @@ const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
 import { router } from "expo-router";
 import WritingMessage from "../writemessage";
-import { set } from "react-hook-form";
 
 const avatars = [
   { id: 1, source: require("../../assets/icons/Bee.png") },
@@ -90,7 +89,40 @@ const getAvatarSource = (avatarId: number) => {
   return avatar ? avatar.source : defaultAvatar;
 };
 
-let messageReceived = "";
+const moodIcons = {
+  1: <Ionicons name="thunderstorm-outline" size={25} color="#023567" />,
+  2: <Fontisto name="rain" size={25} color="#023567" />,
+  3: <AntDesign name="cloudo" size={25} color="#023567" />,
+  4: <Ionicons name="partly-sunny-outline" size={25} color="#023567" />,
+  5: <Feather name="sun" size={25} color="#023567" />,
+};
+
+const getBackgroundColor = (moodIconNumber) => {
+  switch (moodIconNumber) {
+    case 5:
+      return "#FFE785";
+    case 4:
+      return "#BFD7EA";
+    case 3:
+      return "#6495CC";
+    case 2:
+      return "#4F759B";
+    case 1:
+      return "#0D1821";
+    default:
+      return "#3498db";
+  }
+};
+
+const MoodIcon = ({ moodIconNumber }) => {
+  const backgroundColor = getBackgroundColor(moodIconNumber);
+
+  return (
+    <View style={[styles.moodIconContainer, { backgroundColor }]}>
+      {moodIcons[moodIconNumber]}
+    </View>
+  );
+};
 
 const UserCard = ({ user, onSend }) => {
   const avatarSource = getAvatarSource(user.avatar);
@@ -104,12 +136,28 @@ const UserCard = ({ user, onSend }) => {
 
   return (
     <View style={styles.profileContainer}>
-      <View style={styles.profileImageContainer}>
-        <Image source={avatarSource} style={styles.profileImage} />
-      </View>
-      <View style={styles.profileInfoContainer}>
-        <Text style={styles.profileUser}>{user.nickname}</Text>
-        <Text style={styles.profileTag}>{user.hobbies}</Text>
+      <View style={styles.row}>
+        <View style={styles.profileImageContainer}>
+          <Image source={avatarSource} style={styles.profileImage} />
+        </View>
+        <View style={styles.profileInfoContainer}>
+          <Text style={styles.profileUser}>{user.nickname}</Text>
+          <Text style={styles.profileTag}>{user.hobbies}</Text>
+        </View>
+        <View style={styles.moodIconsContainer}>
+          {user?.todayMood ? (
+            <View
+              style={[
+                styles.circle,
+                { backgroundColor: getBackgroundColor(user?.todayMood) },
+              ]}
+            >
+              <MoodIcon moodIconNumber={user?.todayMood} />
+            </View>
+          ) : (
+            <View style={styles.placeholderCircle} />
+          )}
+        </View>
       </View>
       <View style={styles.thoughtsContainer}>
         <Text style={styles.profileThought}>{message}</Text>
@@ -146,7 +194,6 @@ const ReceiveMessage = () => {
   const [canSend, setCanSendMessage] = useState(true);
   const [currUserInList, setCurrUserInList] = useState(true);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
-  const [oneMessageLeft, setOneMessageLeft] = useState(false);
 
   // Handles when current user sends someone else a message
   const handleOpenModal = async (user, message) => {
@@ -193,6 +240,22 @@ const ReceiveMessage = () => {
 
   // Retreive all 5 users that recently sent current user a message
   useEffect(() => {
+    // Used to fetch the mood for today
+    const getTodayDate = () => {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${day}`;
+    };
+
+    const getDayOfWeek = () => {
+      const today = new Date();
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return daysOfWeek[today.getDay()];
+    };
+
+    const thisDayOfWeek = getDayOfWeek();
+    const todayDate = getTodayDate();
+
     const currUser = auth.currentUser?.uid ?? "";
     const unsubscribe = onSnapshot(
       doc(usersRef, currUser),
@@ -219,7 +282,23 @@ const ReceiveMessage = () => {
                   uid: senderData?.uid,
                   nickname: senderData?.nickname,
                   // if no mood was detected want to not display it
-                  mood: senderData?.moods[0].moodIcon || 0,
+                  todayMood:
+                    senderRef.data().moods &&
+                    senderRef
+                      .data()
+                      .moods.find(
+                        (mood) =>
+                          mood.date === todayDate &&
+                          mood.dayOfWeek === thisDayOfWeek
+                      )
+                      ? senderRef
+                          .data()
+                          .moods.find(
+                            (mood) =>
+                              mood.date === todayDate &&
+                              mood.dayOfWeek === thisDayOfWeek
+                          ).moodIcon
+                      : null,
                   hobbies: senderData?.hobbies,
                   message: sender.message,
                   avatar: senderData?.avatar,
@@ -406,12 +485,12 @@ const styles = StyleSheet.create({
   },
 
   profileContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     flex: 1,
     alignItems: "center",
     backgroundColor: "#FFF",
     paddingVertical: 13,
-    paddingHorizontal: 10,
+    paddingHorizontal: 25,
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: {
@@ -430,28 +509,11 @@ const styles = StyleSheet.create({
 
   profileImageContainer: {
     position: "absolute",
-    top: 10,
-    left: 20,
-  },
-
-  editIconContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#F3F3F3",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
   },
 
   profileInfoContainer: {
     flex: 1,
-    marginLeft: 80,
-    marginTop: -110,
+    marginLeft: 65,
   },
 
   profileUser: {
@@ -506,6 +568,49 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  moodIconsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginVertical: 10,
+    marginLeft: "auto",
+    color: "#858494",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  placeholderCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 50,
+    backgroundColor: "#F5F5F5",
+    right: "auto",
+    padding: 0,
+    borderWidth: 0.2,
+    borderColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+  },
+
+  circle: {
+    width: 50,
+    height: 50,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 0.2,
+    borderColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    opacity: 0.7,
+  },
+
   thoughtsContainer: {
     flex: 1,
     position: "absolute",
@@ -513,6 +618,7 @@ const styles = StyleSheet.create({
     top: 75,
     width: 302,
     height: 51,
+    paddingVertical: 10,
   },
 
   profileThought: {

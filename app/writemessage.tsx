@@ -291,8 +291,7 @@ export const WritingMessage = ({
   messageDisplayed,
 }) => {
   const [message, setMessage] = useState("");
-  const messageToDisplay = messageDisplayed;
-  const params = useLocalSearchParams();
+  const [messageTooShort, setMessageTooShort] = useState(false);
   // const { senderUID, receiverUID, onClose } = params;
   //const message = "";
   console.log("senderID is for writing message ", senderUID);
@@ -342,8 +341,13 @@ export const WritingMessage = ({
   };
 
   const handleSend = () => {
-    addRecord(senderUID, receiverUID);
-    onClose();
+    if (message.length < 2) {
+      setMessageTooShort(true);
+    } else {
+      setMessageTooShort(false);
+      addRecord(senderUID, receiverUID);
+      onClose();
+    }
   };
 
   const handleBlur = () => {
@@ -352,6 +356,9 @@ export const WritingMessage = ({
 
   const handleChange = (inputed) => {
     setMessage(inputed);
+    if (message.length >= 2) {
+      setMessageTooShort(false);
+    }
   };
 
   return (
@@ -364,7 +371,7 @@ export const WritingMessage = ({
           <View style={styles.scrollContainer}>
             <ScrollView
               contentContainerStyle={styles.scrollViewContent}
-              keyboardShouldPersistTaps="handled"
+              // keyboardShouldPersistTaps="handled"
             >
               <View style={styles.centeredContainer}>
                 <UserCard
@@ -373,11 +380,21 @@ export const WritingMessage = ({
                   message={messageDisplayed}
                 />
                 {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
-
                 <View style={styles.you}>
                   <Text> YOU: </Text>
                 </View>
-                <View style={styles.inputSection}>
+                {/*When submit is pressed and message is less than 2 characters
+                long, a red border and text will appear*/}
+                <View
+                  style={[
+                    styles.inputSection,
+                    {
+                      borderColor: "#FF6961",
+                      borderWidth: messageTooShort ? 1 : 0,
+                      borderRadius: messageTooShort ? 5 : 0,
+                    },
+                  ]}
+                >
                   <TextInput
                     style={styles.inputTextBox}
                     placeholder="Please type the message you want to send to your fellow airies: "
@@ -390,6 +407,12 @@ export const WritingMessage = ({
                     value={message}
                     onBlur={handleBlur}
                   ></TextInput>
+                  {messageTooShort && (
+                    <Text style={styles.warningMessage}>
+                      Please enter a message with 2 or more characters. The
+                      receiver will appreciate your kind message!
+                    </Text>
+                  )}
                 </View>
               </View>
             </ScrollView>
@@ -560,6 +583,14 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
 
+  warningMessage: {
+    color: "#c84f38",
+    fontSize: 13,
+    fontFamily: "Montserrat",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+
   sendSection: {
     flex: 1,
     flexDirection: "row",
@@ -578,10 +609,6 @@ const styles = StyleSheet.create({
     width: 85,
     height: 32,
     flexDirection: "row",
-
-    // position: 'absolute',
-    // bottom: 10, // Distance from the bottom of the modal
-    // right: 10,
   },
 
   sendButtonText: {

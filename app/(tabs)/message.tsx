@@ -17,6 +17,7 @@ import {
   getDoc,
   doc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { app } from "../firebase";
 // yarn add react-native-vector-icons
@@ -90,11 +91,11 @@ const getAvatarSource = (avatarId) => {
 };
 
 const moodIcons = {
-  1: <Ionicons name="thunderstorm-outline" size={20} color="#023567" />,
-  2: <Fontisto name="rain" size={20} color="#023567" />,
-  3: <AntDesign name="cloudo" size={20} color="#023567" />,
-  4: <Ionicons name="partly-sunny-outline" size={20} color="#023567" />,
-  5: <Feather name="sun" size={20} color="#023567" />,
+  1: <Ionicons name="thunderstorm-outline" size={25} color="#023567" />,
+  2: <Fontisto name="rain" size={25} color="#023567" />,
+  3: <AntDesign name="cloudo" size={25} color="#023567" />,
+  4: <Ionicons name="partly-sunny-outline" size={25} color="#023567" />,
+  5: <Feather name="sun" size={25} color="#023567" />,
 };
 
 const getBackgroundColor = (moodIconNumber) => {
@@ -125,35 +126,98 @@ const MoodIcon = ({ moodIconNumber }) => {
 };
 
 const UserCard = ({ user, onSend }) => {
-  const getTodayDate = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
-    const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
-    return `${month}-${day}`;
-  };
+  const [receiver, setReceiver] = useState<{
+    uid: String;
+    nickname: string;
+    firstThought: string;
+    todayMood: number;
+    hobbies: string;
+    avatar: string;
+  }>();
 
-  const todayDate = getTodayDate();
-
-  const firstThought =
-    user.thoughts && user.thoughts.find((thought) => thought.date === todayDate)
-      ? user.thoughts.find((thought) => thought.date === todayDate).thought
-      : "No thoughts available today";
-
-  console.log("Today's Thoughts:", firstThought);
-
-  const avatarSource = getAvatarSource(user.avatar);
-
-  const todayMood = user.moods.find((mood) => mood.date === todayDate);
-
-  console.log("Today's Date:", todayDate);
-  console.log("User's Moods:", user.moods);
-  console.log("Current Mood:", todayMood);
+  const avatarSource = getAvatarSource(receiver?.avatar);
 
   const handleSend = () =>
     router.navigate({
       pathname: "/writemessage",
       params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
     });
+  const receieverDocRef = user.id;
+
+  useEffect(() => {
+    const getTodayDate = () => {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${day}`;
+    };
+
+    const getTodayDateMon = () => {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-based month index, so add 1
+      const day = String(today.getDate()).padStart(2, "0"); // getDate() returns the day of the month
+      return `${month}-${day}`;
+    };
+
+    const getDayOfWeek = () => {
+      const today = new Date();
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return daysOfWeek[today.getDay()];
+    };
+
+    const thisDayOfWeek = getDayOfWeek();
+    const todayDate = getTodayDate();
+    const todayDateMon = getTodayDateMon();
+    console.log("Today's day of week", thisDayOfWeek);
+    console.log("Today's Date:", todayDate);
+
+    const receieverDocRef = doc(usersRef, user.id);
+    const unsubscribe = onSnapshot(
+      receieverDocRef,
+      (receiver) => {
+        if (receiver.exists()) {
+          const receiverData = {
+            uid: user.id,
+            nickname: receiver.data().nickname || "Unknown User",
+            firstThought: receiver
+              .data()
+              .thoughts.find((thought) => thought.date === todayDateMon)
+              ? receiver
+                  .data()
+                  .thoughts.find((thought) => thought.date === todayDateMon)
+                  .thought
+              : "No thoughts available today",
+            todayMood:
+              receiver.data().moods &&
+              receiver
+                .data()
+                .moods.find(
+                  (mood) =>
+                    mood.date === todayDate && mood.dayOfWeek === thisDayOfWeek
+                )
+                ? receiver
+                    .data()
+                    .moods.find(
+                      (mood) =>
+                        mood.date === todayDate &&
+                        mood.dayOfWeek === thisDayOfWeek
+                    ).moodIcon
+                : null,
+            avatar: receiver.data().avatar,
+            hobbies: receiver.data().hobbies || "",
+          };
+          console.log("full mood list ", receiver.data().moods);
+          console.log("line 100 ", receiverData);
+          setReceiver(receiverData);
+        } else {
+          throw new Error("Receiver data not found");
+        }
+      },
+      (error) => {
+        console.error("Error listening to receiver ", error);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
   return (
     <View style={styles.profileContainer}>
@@ -162,18 +226,18 @@ const UserCard = ({ user, onSend }) => {
           <Image source={avatarSource} style={styles.profileImage} />
         </View>
         <View style={styles.profileInfoContainer}>
-          <Text style={styles.profileUser}>{user.nickname}</Text>
-          <Text style={styles.profileTag}>{user.hobbies}</Text>
+          <Text style={styles.profileUser}>{receiver?.nickname}</Text>
+          <Text style={styles.profileTag}>{receiver?.hobbies}</Text>
         </View>
         <View style={styles.moodIconsContainer}>
-          {todayMood ? (
+          {receiver?.todayMood ? (
             <View
               style={[
                 styles.circle,
-                { backgroundColor: getBackgroundColor(todayMood.moodIcon) },
+                { backgroundColor: getBackgroundColor(receiver?.todayMood) },
               ]}
             >
-              <MoodIcon moodIconNumber={todayMood.moodIcon} />
+              <MoodIcon moodIconNumber={receiver?.todayMood} />
             </View>
           ) : (
             <View style={styles.placeholderCircle} />
@@ -181,7 +245,7 @@ const UserCard = ({ user, onSend }) => {
         </View>
       </View>
       <ScrollView style={styles.thoughtsContainer}>
-        <Text style={styles.profileThought}>{firstThought}</Text>
+        <Text style={styles.profileThought}>{receiver?.firstThought}</Text>
       </ScrollView>
 
       {/* <TouchableOpacity style={styles.sendButton} onPress={handleSend}> */}
@@ -194,9 +258,7 @@ const UserCard = ({ user, onSend }) => {
 };
 
 const SendMessage = () => {
-  const [usersData, setUsersData] = useState<
-    { id: string; nickname?: string; hobbies?: string }[]
-  >([]);
+  const [usersData, setUsersData] = useState<{ id: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSendEnabled, setIsSendEnabled] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -250,11 +312,10 @@ const SendMessage = () => {
 
       const formattedUserData = userData.map((userDoc) => ({
         id: userDoc.id,
-        ...userDoc.data(),
       }));
 
       setUsersData(formattedUserData);
-
+      console.log(formattedUserData);
       setLoading(false);
     } catch (error) {
       console.error("Error getting documents: ", error);
@@ -467,6 +528,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 
+
+
   profileInfo: {
     flex: 1,
   },
@@ -498,25 +561,37 @@ const styles = StyleSheet.create({
     color: "#858494",
   },
   placeholderCircle: {
-    width: 55,
-    height: 55,
+    width: 50,
+    height: 50,
     borderRadius: 50,
-    backgroundColor: "#D3D3D3",
-    borderColor: "white",
-    borderWidth: 1,
+    backgroundColor: "#F5F5F5",
     right: "auto",
     padding: 0,
+    borderWidth: 0.2,
+    borderColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
   },
   circle: {
-    width: 55,
-    height: 55,
+    width: 50,
+    height: 50,
     borderRadius: 50,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 0.2,
+    borderColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    opacity: 0.7,
+
   },
   sendButton: {
     backgroundColor: "#4F759B",

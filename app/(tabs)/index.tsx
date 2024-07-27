@@ -248,7 +248,7 @@ const Home = () => {
   };
 
   const handleThoughtSkip = () => {
-    setThought("");
+    setThought("No thoughts available");
     setPlaceholder(
       "You skipped your thoughts for now. Remember, you can come back later!"
     );
@@ -705,9 +705,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#fff",
-    paddingHorizontal: 40,
+    paddingHorizontal: 25,
     paddingTop: 15,
-    paddingBottom: 15,
+    paddingBottom: 25,
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: "85%",
     alignItems: "center",
-    minHeight: "15%",
+    minHeight: "10%",
     borderWidth: 4,
     borderColor: "#BFD7EA",
   },

@@ -137,13 +137,6 @@ const UserCard = ({ user, onSend }) => {
 
   const avatarSource = getAvatarSource(receiver?.avatar);
 
-  const handleSend = () =>
-    router.navigate({
-      pathname: "/writemessage",
-      params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
-    });
-  const receieverDocRef = user.id;
-
   useEffect(() => {
     const getTodayDate = () => {
       const today = new Date();
@@ -167,8 +160,6 @@ const UserCard = ({ user, onSend }) => {
     const thisDayOfWeek = getDayOfWeek();
     const todayDate = getTodayDate();
     const todayDateMon = getTodayDateMon();
-    console.log("Today's day of week", thisDayOfWeek);
-    console.log("Today's Date:", todayDate);
 
     const receieverDocRef = doc(usersRef, user.id);
     const unsubscribe = onSnapshot(
@@ -205,8 +196,6 @@ const UserCard = ({ user, onSend }) => {
             avatar: receiver.data().avatar,
             hobbies: receiver.data().hobbies || "",
           };
-          console.log("full mood list ", receiver.data().moods);
-          console.log("line 100 ", receiverData);
           setReceiver(receiverData);
         } else {
           throw new Error("Receiver data not found");
@@ -263,15 +252,85 @@ const SendMessage = () => {
   const [isSendEnabled, setIsSendEnabled] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedMood, setSelectedMood] = useState(null);
+  const [canSend, setCanSendMessage] = useState(true);
+  const [currUserInList, setCurrUserInList] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [oneMessageLeft, setOneMessageLeft] = useState(false);
 
   const handleSendPress = () => setIsSendEnabled(true);
   const handleReceivePress = () => setIsSendEnabled(false);
-  const handleOpenModal = (user) => {
-    setSelectedUser(user);
-    setIsModalVisible(true);
+  // Handles when current user sends someone else a message
+  const handleOpenModal = async (user, message) => {
+    await checkChancesLeft();
+    await checkSentBefore(user);
+    console.log(
+      "Checking request validity sender...",
+      currUserInList,
+      " and ",
+      canSend
+    );
+    // has at least 1 more chance to send a message and current users did not
+    // recently send that person a message
+    if (!currUserInList && canSend) {
+      setSelectedUser(user);
+      setIsModalVisible(true);
+      setErrorModalVisible(false);
+    } else {
+      setErrorModalVisible(true);
+    }
   };
   const handleCloseModal = () => setIsModalVisible(false);
+  const handleExitErrorModal = () => setErrorModalVisible(false);
+
+  // user is an object with fields about the user current user want to send a message to
+  const checkSentBefore = (user) => {
+    console.log(user);
+    // check if I am on that user's messageRecieved field
+    const unsubscribe = onSnapshot(
+      doc(usersRef, user.id),
+      (receiverCheck) => {
+        console.log(receiverCheck.data()?.messagesReceived || []);
+        const receiverMessageList =
+          receiverCheck.data()?.messagesReceived || [];
+        console.log([].length);
+        if (receiverMessageList.length !== 0) {
+          const currUserSeen = receiverMessageList.some((messageEntry) => {
+            return messageEntry.senderID === auth.currentUser?.uid;
+          });
+          console.log("got here");
+          setCurrUserInList(currUserSeen);
+        } else {
+          setCurrUserInList(false);
+          console.log(currUserInList);
+        }
+      },
+      (error) => {
+        console.error(
+          "Error checking the messageReceived field of ",
+          user.uid,
+          " ",
+          error
+        );
+      }
+    );
+    return () => unsubscribe();
+  };
+
+  const checkChancesLeft = () => {
+    const unsubscribe = onSnapshot(
+      doc(usersRef, auth.currentUser?.uid),
+      (senderCheck) => {
+        const userChancesLeft = senderCheck.data()?.messageLeft;
+        const canSendMessage = userChancesLeft === 0 ? false : true;
+        setOneMessageLeft(userChancesLeft === 1 ? false : true);
+        setCanSendMessage(canSendMessage);
+      },
+      (error) => {
+        console.error("Error setting listener to current user");
+      }
+    );
+    return () => unsubscribe();
+  };
 
   useEffect(() => {
     fetchData();
@@ -315,7 +374,6 @@ const SendMessage = () => {
       }));
 
       setUsersData(formattedUserData);
-      console.log(formattedUserData);
       setLoading(false);
     } catch (error) {
       console.error("Error getting documents: ", error);
@@ -377,6 +435,34 @@ const SendMessage = () => {
             onClose={handleCloseModal}
             messageDisplayed={""}
           />
+        </Modal>
+        <Modal
+          visible={errorModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={handleExitErrorModal}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.headerCloseButton}
+                onPress={handleExitErrorModal}
+              >
+                <AntDesign name="close" size={25} color="black" />
+              </TouchableOpacity>
+              {canSend ? (
+                <Text style={styles.modalText}>
+                  You have recently sent this user a message. Connect with
+                  another airy on this app!
+                </Text>
+              ) : (
+                <Text style={styles.modalText}>
+                  Great work on sending 10 messages today and uplifting fellow
+                  airies! Please come back tomorrow to send more!
+                </Text>
+              )}
+            </View>
+          </View>
         </Modal>
       </View>
     </ImageBackground>
@@ -622,18 +708,45 @@ const styles = StyleSheet.create({
     left: 1.89,
     top: 2.38,
   },
+
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
+
   modalContent: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    width: "90%",
-    maxHeight: "80%",
+    backgroundColor: "#fff",
+    paddingHorizontal: 40,
+    paddingTop: 15,
+    paddingBottom: 15,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: "85%",
+    alignItems: "center",
+    minHeight: "15%",
+    borderWidth: 4,
+    borderColor: "#BFD7EA",
+  },
+
+  modalText: {
+    marginTop: 20,
+    fontSize: 13,
+    fontFamily: "Montserrat",
+    textAlign: "left",
+    color: "#0D1821",
+  },
+
+  headerCloseButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 5,
   },
 });
 

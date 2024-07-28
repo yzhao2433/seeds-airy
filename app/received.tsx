@@ -600,72 +600,74 @@ import {
   updateDoc,
   onSnapshot,
 } from "firebase/firestore";
-import { app } from "../firebase";
+import { app } from "./firebase";
 // yarn add react-native-vector-icons
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 
-import { auth } from "../firebase";
+import { auth } from "./firebase";
 const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
 import { router } from "expo-router";
-import WritingMessage from "../writemessage";
+import WritingMessage from "./writemessage";
 import { set } from "react-hook-form";
 
 const avatars = [
-  { id: 1, source: require("../../assets/icons/Bee.png") },
-  { id: 2, source: require("../../assets/icons/Cat.png") },
-  { id: 3, source: require("../../assets/icons/Chick.png") },
-  { id: 4, source: require("../../assets/icons/Crab.png") },
-  { id: 5, source: require("../../assets/icons/Fox.png") },
-  { id: 6, source: require("../../assets/icons/Frog.png") },
-  { id: 7, source: require("../../assets/icons/Koala.png") },
-  { id: 8, source: require("../../assets/icons/Lion.png") },
-  { id: 9, source: require("../../assets/icons/Turtle.png") },
-  { id: 10, source: require("../../assets/icons/Whale.png") },
-  { id: 11, source: require("../../assets/icons/alligator.png") },
-  { id: 12, source: require("../../assets/icons/ant.png") },
-  { id: 13, source: require("../../assets/icons/anteater.png") },
-  { id: 14, source: require("../../assets/icons/bird.png") },
-  { id: 15, source: require("../../assets/icons/butterfly.png") },
-  { id: 16, source: require("../../assets/icons/camel.png") },
-  { id: 17, source: require("../../assets/icons/chameleon.png") },
-  { id: 18, source: require("../../assets/icons/chicken.png") },
-  { id: 19, source: require("../../assets/icons/cow.png") },
-  { id: 20, source: require("../../assets/icons/dino.png") },
-  { id: 21, source: require("../../assets/icons/dog.png") },
-  { id: 22, source: require("../../assets/icons/dolphin.png") },
-  { id: 23, source: require("../../assets/icons/elephant.png") },
-  { id: 24, source: require("../../assets/icons/fish.png") },
-  { id: 25, source: require("../../assets/icons/fox2.png") },
-  { id: 26, source: require("../../assets/icons/giraffe.png") },
-  { id: 27, source: require("../../assets/icons/hedgehog.png") },
-  { id: 28, source: require("../../assets/icons/hippo.png") },
-  { id: 29, source: require("../../assets/icons/jellyfish.png") },
-  { id: 30, source: require("../../assets/icons/ladybug.png") },
-  { id: 31, source: require("../../assets/icons/monkey.png") },
-  { id: 32, source: require("../../assets/icons/mouse.png") },
-  { id: 33, source: require("../../assets/icons/octopus.png") },
-  { id: 34, source: require("../../assets/icons/owl.png") },
-  { id: 35, source: require("../../assets/icons/parrot.png") },
-  { id: 36, source: require("../../assets/icons/penguin.png") },
-  { id: 37, source: require("../../assets/icons/pig.png") },
-  { id: 38, source: require("../../assets/icons/pony.png") },
-  { id: 39, source: require("../../assets/icons/seahorse.png") },
-  { id: 40, source: require("../../assets/icons/seal.png") },
-  { id: 41, source: require("../../assets/icons/shark.png") },
-  { id: 42, source: require("../../assets/icons/sheep.png") },
-  { id: 43, source: require("../../assets/icons/sloth.png") },
-  { id: 44, source: require("../../assets/icons/snail.png") },
-  { id: 45, source: require("../../assets/icons/snake.png") },
-  { id: 46, source: require("../../assets/icons/squirrel.png") },
-  { id: 47, source: require("../../assets/icons/stingray.png") },
-  { id: 48, source: require("../../assets/icons/tiger.png") },
+  { id: 1, source: require("../assets/icons/Bee.png") },
+  { id: 2, source: require("../assets/icons/Cat.png") },
+  { id: 3, source: require("../assets/icons/Chick.png") },
+  { id: 4, source: require("../assets/icons/Crab.png") },
+  { id: 5, source: require("../assets/icons/Fox.png") },
+  { id: 6, source: require("../assets/icons/Frog.png") },
+  { id: 7, source: require("../assets/icons/Koala.png") },
+  { id: 8, source: require("../assets/icons/Lion.png") },
+  { id: 9, source: require("../assets/icons/Turtle.png") },
+  { id: 10, source: require("../assets/icons/Whale.png") },
+  { id: 11, source: require("../assets/icons/alligator.png") },
+  { id: 12, source: require("../assets/icons/ant.png") },
+  { id: 13, source: require("../assets/icons/anteater.png") },
+  { id: 14, source: require("../assets/icons/bird.png") },
+  { id: 15, source: require("../assets/icons/butterfly.png") },
+  { id: 16, source: require("../assets/icons/camel.png") },
+  { id: 17, source: require("../assets/icons/chameleon.png") },
+  { id: 18, source: require("../assets/icons/chicken.png") },
+  { id: 19, source: require("../assets/icons/cow.png") },
+  { id: 20, source: require("../assets/icons/dino.png") },
+  { id: 21, source: require("../assets/icons/dog.png") },
+  { id: 22, source: require("../assets/icons/dolphin.png") },
+  { id: 23, source: require("../assets/icons/elephant.png") },
+  { id: 24, source: require("../assets/icons/fish.png") },
+  { id: 25, source: require("../assets/icons/fox2.png") },
+  { id: 26, source: require("../assets/icons/giraffe.png") },
+  { id: 27, source: require("../assets/icons/hedgehog.png") },
+  { id: 28, source: require("../assets/icons/hippo.png") },
+  { id: 29, source: require("../assets/icons/jellyfish.png") },
+  { id: 30, source: require("../assets/icons/ladybug.png") },
+  { id: 31, source: require("../assets/icons/monkey.png") },
+  { id: 32, source: require("../assets/icons/mouse.png") },
+  { id: 33, source: require("../assets/icons/octopus.png") },
+  { id: 34, source: require("../assets/icons/owl.png") },
+  { id: 35, source: require("../assets/icons/parrot.png") },
+  { id: 36, source: require("../assets/icons/penguin.png") },
+  { id: 37, source: require("../assets/icons/pig.png") },
+  { id: 38, source: require("../assets/icons/pony.png") },
+  { id: 39, source: require("../assets/icons/seahorse.png") },
+  { id: 40, source: require("../assets/icons/seal.png") },
+  { id: 41, source: require("../assets/icons/shark.png") },
+  { id: 42, source: require("../assets/icons/sheep.png") },
+  { id: 43, source: require("../assets/icons/sloth.png") },
+  { id: 44, source: require("../assets/icons/snail.png") },
+  { id: 45, source: require("../assets/icons/snake.png") },
+  { id: 46, source: require("../assets/icons/squirrel.png") },
+  { id: 47, source: require("../assets/icons/stingray.png") },
+  { id: 48, source: require("../assets/icons/tiger.png") },
+  // { id: 49, source: require("../assets/icons/panda.png") },
+  // { id: 50, source: require("../assets/icons/axolotl.png") },
 ];
 
-const defaultAvatar = require("../../assets/images/avatar.png");
+const defaultAvatar = require("../assets/images/avatar.png");
 
 const getAvatarSource = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
@@ -898,7 +900,7 @@ const ReceiveMessage = () => {
   return (
     <ImageBackground
       // source={require("../../assets/images/receiveCloud.png")}
-      source={require("../../assets/images/receivedCloud2.png")}
+      source={require("../assets/images/receivedCloud2.png")}
       style={styles.background}
       resizeMode="cover"
     >

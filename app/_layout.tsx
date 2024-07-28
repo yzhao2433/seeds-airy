@@ -17,7 +17,6 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { auth } from "./firebase";
 import { SafeAreaView, Text } from "react-native";
-import Login from "./login";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -68,7 +67,11 @@ export default function RootLayout() {
       <SafeAreaView style={{ flex: 1 }}>
         {user ? (
           <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="navbar" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
+            <Stack.Screen name="message" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         ) : (

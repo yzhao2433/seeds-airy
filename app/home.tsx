@@ -23,6 +23,7 @@ import { app } from "./firebase";
 import { auth } from "./firebase";
 import globalFont from "../styles/globalfont";
 import { router } from "expo-router";
+import Navbar from "./navbar";
 
 import Icon from "react-native-vector-icons/MaterialIcons";
 
@@ -250,6 +251,9 @@ const Home = () => {
       source={require("@/assets/images/home_clouds.png")}
       style={styles.backgroundImage}
     >
+      <View style={styles.navbar}>
+        <Navbar />
+      </View>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.subHeader, globalFont.Nunito]}>
           Welcome back, {userData ? userData.nickname : "User"}!
@@ -722,6 +726,12 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  navbar: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    zIndex: 1,
   },
 });
 

@@ -68,7 +68,7 @@ export default function RootLayout() {
         {user ? (
           <Stack>
             <Stack.Screen name="navbar" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="home" options={{ headerShown: false }} />
             <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
             <Stack.Screen name="message" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />

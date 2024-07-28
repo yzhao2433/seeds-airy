@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 import globalFont from "../styles/globalfont";
 import { app, auth } from "./firebase";
+import Navbar from "./navbar";
 
 const db = getFirestore(app);
 const userCollection = collection(db, "user");
@@ -195,6 +196,9 @@ const Leaderboard = () => {
       source={require("../assets/images/leaderboardCloud.png")}
       style={styles.backgroundImage}
     >
+      <View style={styles.navbar}>
+        <Navbar />
+      </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={[styles.subHeader, globalFont.Nunito]}>Leaderboard</Text>
@@ -329,6 +333,12 @@ const styles = StyleSheet.create({
   profileStar: {
     width: 45,
     height: 45,
+  },
+  navbar: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    zIndex: 1,
   },
 });
 

@@ -24,6 +24,7 @@ import { app } from "./firebase";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Feather, Ionicons, AntDesign, Fontisto } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
+import Navbar from "./navbar";
 
 import { auth } from "./firebase";
 const db = getFirestore(app);
@@ -344,6 +345,9 @@ const SendMessage = () => {
       style={styles.background}
       resizeMode="cover"
     >
+      <View style={styles.navbar}>
+        <Navbar />
+      </View>
       <View style={styles.container}>
         <View style={styles.switchContainer}>
           <TouchableOpacity
@@ -362,6 +366,7 @@ const SendMessage = () => {
         <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
           <Ionicons name="refresh" size={30} color="black" />
         </TouchableOpacity>
+
         <ScrollView style={styles.userList}>
           {usersData.map((user) => (
             <UserCard key={user.id} user={user} onSend={handleOpenModal} />
@@ -636,6 +641,12 @@ const styles = StyleSheet.create({
     padding: 20,
     width: "90%",
     maxHeight: "80%",
+  },
+  navbar: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    zIndex: 1,
   },
 });
 

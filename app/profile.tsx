@@ -24,7 +24,7 @@ import { app } from "./firebase";
 import { auth } from "./firebase";
 import globalFont from "../styles/globalfont";
 import { router } from "expo-router";
-
+import Navbar from "./navbar";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Feather, Ionicons, AntDesign, Fontisto } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -191,6 +191,9 @@ const Profile = () => {
       source={require("@/assets/images/profilebackground.png")}
       style={styles.backgroundImage}
     >
+      <View style={styles.navbar}>
+        <Navbar />
+      </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={[styles.subHeader, globalFont.Nunito]}>Profile</Text>
@@ -764,6 +767,12 @@ const styles = StyleSheet.create({
 
   noMoodOrThought: {
     fontFamily: "Montserrat",
+  },
+  navbar: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    zIndex: 1,
   },
 });
 

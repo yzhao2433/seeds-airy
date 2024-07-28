@@ -46,7 +46,7 @@ function Login() {
         values.password
       );
       console.log(user);
-      router.navigate("./(tabs)");
+      router.navigate("./home");
     } catch (e) {
       const error = e as AuthError;
       if (error.code === "auth/invalid-credential") {

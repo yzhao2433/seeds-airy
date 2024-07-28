@@ -72,6 +72,11 @@ export default function RootLayout() {
             <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
             <Stack.Screen name="message" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
+            <Stack.Screen name="received" options={{ headerShown: false }} />
+            <Stack.Screen name="features" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         ) : (

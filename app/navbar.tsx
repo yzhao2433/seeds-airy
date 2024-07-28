@@ -1,21 +1,23 @@
 import React from "react";
 import { View, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { usePathname, useRouter, useSegments } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 
 const screenHeight = Dimensions.get("window").height;
 
 const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const segments = useSegments();
-  const currentRoute = segments.join("/");
 
-  const getIconName = (route: string, iconName: string) => {
+  const getIconName = (
+    route: string,
+    filledIcon: string,
+    outlineIcon: string
+  ) => {
     if (pathname === route) {
-      return iconName;
+      return filledIcon;
     }
-    return `${iconName}-outline`;
+    return outlineIcon;
   };
 
   return (
@@ -26,9 +28,9 @@ const Navbar = () => {
           onPress={() => router.push("/home")}
         >
           <Ionicons
-            name={getIconName("/home", "home")}
+            name={getIconName("/home", "home", "home-outline")}
             size={30}
-            color={currentRoute === "home" ? "#4F759B" : "#585858"}
+            color={pathname === "/home" ? "#4F759B" : "#585858"}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -38,7 +40,7 @@ const Navbar = () => {
           <MaterialIcons
             name="leaderboard"
             size={30}
-            color={currentRoute === "leaderboard" ? "#4F759B" : "#585858"}
+            color={pathname === "/leaderboard" ? "#4F759B" : "#585858"}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -46,9 +48,9 @@ const Navbar = () => {
           onPress={() => router.push("/message")}
         >
           <Ionicons
-            name={getIconName("/message", "paper-plane")}
+            name={getIconName("/message", "paper-plane", "paper-plane-outline")}
             size={30}
-            color={currentRoute === "message" ? "#4F759B" : "#585858"}
+            color={pathname === "/message" ? "#4F759B" : "#585858"}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -56,9 +58,9 @@ const Navbar = () => {
           onPress={() => router.push("/profile")}
         >
           <Ionicons
-            name={getIconName("/profile", "person")}
+            name={getIconName("/profile", "person", "person-outline")}
             size={30}
-            color={currentRoute === "profile" ? "#4F759B" : "#585858"}
+            color={pathname === "/profile" ? "#4F759B" : "#585858"}
           />
         </TouchableOpacity>
       </View>

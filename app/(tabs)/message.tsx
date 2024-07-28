@@ -24,7 +24,7 @@ import { app } from "../firebase";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Feather, Ionicons, AntDesign, Fontisto } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
-
+import { FontAwesome5 } from "@expo/vector-icons";
 import { auth } from "../firebase";
 const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
@@ -358,7 +358,9 @@ const SendMessage = () => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-          <Ionicons name="refresh" size={30} color="black" />
+          {/* <Ionicons name="refresh" size={30} color="black" /> */}
+          {/* <FontAwesome5 name="dice" size={30} color="black" /> */}
+          <Ionicons name="dice" size={33} color="black" />
         </TouchableOpacity>
         <ScrollView style={styles.userList}>
           {usersData.map((user) => (
@@ -516,6 +518,7 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
     marginBottom: 20,
+    opacity: 0.75,
   },
 
   profileHeader: {

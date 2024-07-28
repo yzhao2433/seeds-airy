@@ -375,20 +375,15 @@ const Profile = () => {
           onRequestClose={closeModal}
         >
           <View style={styles.thoughtModalBackground}>
-            <View style={styles.thoughtModalContainer}>
               <View style={styles.modalContent}>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={closeModal}
-                >
-                  <Text style={styles.closeButtonText}>×</Text>
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.headerCloseButton} onPress={closeModal}>
+                      <AntDesign name="close" size={25} color="black" />
+                    </TouchableOpacity>
                 <ScrollView style={styles.scrollView}>
                   <Text style={styles.modalText}>{selectedPost.thought}</Text>
                 </ScrollView>
               </View>
             </View>
-          </View>
         </Modal>
       </ScrollView>
     </ImageBackground>
@@ -705,29 +700,27 @@ const styles = StyleSheet.create({
   },
 
   modalContent: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 40,
-    paddingTop: 15,
-    paddingBottom: 15,
+    height: "38%",
+    width: "78%",
+    backgroundColor: "#FFF",
     borderRadius: 20,
+    padding: 20,
+    borderWidth: 4,
+    borderColor: "#BFD7EA",
+    alignContent: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
-    elevation: 5,
-    width: "80%",
-    alignItems: "center",
-    minHeight: "30%",
-  },
-  closeButton: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-    backgroundColor: "#fff",
-    width: 30,
-    height: 30,
-    alignItems: "center",
+    flexDirection: "column",
     justifyContent: "center",
+    alignItems: "center",
+  },
+  headerCloseButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 5,
   },
   closeButtonText: {
     color: "#000000",
@@ -747,13 +740,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  thoughtModalContainer: {
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    maxHeight: "60%",
-    alignItems: "center",
-  },
+  
   scrollView: {
     maxHeight: 300,
     width: "100%",

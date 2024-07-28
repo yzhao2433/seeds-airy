@@ -253,7 +253,7 @@ const SendMessage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [canSend, setCanSendMessage] = useState(true);
-  const [currUserInList, setCurrUserInList] = useState(true);
+  const [currUserInList, setCurrUserInList] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [oneMessageLeft, setOneMessageLeft] = useState(false);
 
@@ -263,7 +263,12 @@ const SendMessage = () => {
   const handleOpenModal = async (user, message) => {
     await checkChancesLeft();
     await checkSentBefore(user);
-    console.log("Checking request validity sender...");
+    console.log(
+      "Checking request validity sender...",
+      currUserInList,
+      " and ",
+      canSend
+    );
     // has at least 1 more chance to send a message and current users did not
     // recently send that person a message
     if (!currUserInList && canSend) {
@@ -279,16 +284,25 @@ const SendMessage = () => {
 
   // user is an object with fields about the user current user want to send a message to
   const checkSentBefore = (user) => {
+    console.log(user);
     // check if I am on that user's messageRecieved field
     const unsubscribe = onSnapshot(
       doc(usersRef, user.id),
       (receiverCheck) => {
+        console.log(receiverCheck.data()?.messagesReceived || []);
         const receiverMessageList =
           receiverCheck.data()?.messagesReceived || [];
-        const currUserSeen = receiverMessageList.some((messageEntry) => {
-          return messageEntry.senderID == auth.currentUser?.uid;
-        });
-        setCurrUserInList(currUserSeen);
+        console.log([].length);
+        if (receiverMessageList.length !== 0) {
+          const currUserSeen = receiverMessageList.some((messageEntry) => {
+            return messageEntry.senderID === auth.currentUser?.uid;
+          });
+          console.log("got here");
+          setCurrUserInList(currUserSeen);
+        } else {
+          setCurrUserInList(false);
+          console.log(currUserInList);
+        }
       },
       (error) => {
         console.error(

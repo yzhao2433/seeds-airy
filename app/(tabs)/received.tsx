@@ -192,7 +192,7 @@ const ReceiveMessage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageRec, setMessageRec] = useState("");
   const [canSend, setCanSendMessage] = useState(true);
-  const [currUserInList, setCurrUserInList] = useState(true);
+  const [currUserInList, setCurrUserInList] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
 
   // Handles when current user sends someone else a message

@@ -376,12 +376,10 @@ const Home = () => {
             >
               <View style={styles.modalBackground}>
                 <View style={styles.modalContent}>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={handleCloseModal}
-                  >
-                    <Text style={styles.closeButtonText}>X</Text>
-                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.headerCloseButton} onPress={handleCloseModal}>
+                      <AntDesign name="close" size={25} color="black" />
+                    </TouchableOpacity>
                   <Text style={styles.modalText}>
                     You have submitted your thoughts today. Feel free to come
                     back and edit this thought if you wish!
@@ -708,20 +706,11 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat",
     textAlign: "left",
   },
-  closeButton: {
+  headerCloseButton: {
     position: "absolute",
-    top: 5,
-    right: 5,
-    backgroundColor: "#fff",
-    width: 30,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeButtonText: {
-    color: "#000000",
-    fontSize: 18,
-    fontWeight: "bold",
+    top: 10,
+    right: 10,
+    zIndex: 5,
   },
 });
 

@@ -273,8 +273,8 @@ const SendMessage = () => {
     // recently send that person a message
     if (!currUserInList && canSend) {
       setSelectedUser(user);
-      setIsModalVisible(true);
       setErrorModalVisible(false);
+      setIsModalVisible(true);
     } else {
       setErrorModalVisible(true);
     }
@@ -292,7 +292,6 @@ const SendMessage = () => {
         console.log(receiverCheck.data()?.messagesReceived || []);
         const receiverMessageList =
           receiverCheck.data()?.messagesReceived || [];
-        console.log([].length);
         if (receiverMessageList.length !== 0) {
           const currUserSeen = receiverMessageList.some((messageEntry) => {
             return messageEntry.senderID === auth.currentUser?.uid;

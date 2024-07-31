@@ -15,8 +15,6 @@ import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 
 //// for set up, if you haven't already, run npm install -- save firebase
 
-// Your web app's Firebase configuration
-
 const firebaseConfig = {
   apiKey: "AIzaSyCDiL4Jh94BByPNwXBjwF_p1vTPBajLzxw",
   authDomain: "airy-daa5f.firebaseapp.com",

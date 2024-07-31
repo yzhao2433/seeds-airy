@@ -9,6 +9,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+app/firebase.ts
 
 # macOS
 .DS_Store
@@ -19,4 +20,4 @@ web-build/
 expo-env.d.ts
 # @end expo-cli
 
-app/firebase.ts
+

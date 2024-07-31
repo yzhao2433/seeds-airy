@@ -457,7 +457,9 @@ const SendMessage = () => {
               ) : (
                 <Text style={styles.modalText}>
                   Great work on sending 10 messages today and uplifting fellow
-                  airies! Please come back tomorrow to send more!
+                  airies! Please come back tomorrow to send more! In the mean
+                  time, we believe you will be able to complete your task! You
+                  got this. We all believe in you.
                 </Text>
               )}
             </View>
@@ -728,7 +730,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: "85%",
     alignItems: "center",
-    minHeight: "15%",
+    minHeight: "20%",
     borderWidth: 4,
     borderColor: "#BFD7EA",
   },

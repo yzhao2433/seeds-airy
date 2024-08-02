@@ -65,19 +65,6 @@ export default function TabLayout() {
             ),
           }}
         />
-        {/* <Tabs.Screen
-          name="received"
-          options={{
-            tabBarIcon: ({ color, focused }) => (
-              <MaterialCommunityIcons
-                name="email-receive"
-                color={color}
-                style={styles.icon}
-                size={33}
-              />
-            ),
-          }}
-        ></Tabs.Screen> */}
         <Tabs.Screen
           name="profile"
           options={{

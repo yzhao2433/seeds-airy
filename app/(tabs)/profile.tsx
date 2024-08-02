@@ -105,8 +105,6 @@ const Profile = () => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       const userDocRef = doc(db, "user", currentUser.uid);
-      console.log("Setting up real-time listener...");
-
       const unsubscribe = onSnapshot(
         userDocRef,
         (doc) => {
@@ -115,9 +113,8 @@ const Profile = () => {
             setUserData(userData);
             setThoughts(userData.thoughts || []);
             setMoods(userData.moods || []);
-            console.log("User data updated:", userData);
           } else {
-            console.log("User document not found");
+            console.error("User document not found");
           }
         },
         (error) => {
@@ -128,11 +125,9 @@ const Profile = () => {
       // Clean up the listener on component unmount
       return () => unsubscribe();
     } else {
-      console.log("Current user not found");
+      console.error("Current user not found");
     }
   }, []);
-
-  console.log("Current user data:", userData);
 
   const moodIcons = {
     1: <Ionicons name="thunderstorm-outline" size={20} color="#023567" />,
@@ -265,31 +260,6 @@ const Profile = () => {
             </View>
           </TouchableOpacity>
         </Modal>
-
-        {/* <View style={styles.whiteContainer}>
-          <Text style={styles.title}>Mood Tracker</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.horizontalScroll}
-          >
-            {moods.map((mood, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.moodEntry,
-                  { backgroundColor: getBackgroundColor(mood.moodIcon) },
-                ]}
-              >
-                <Text style={styles.mooddayLabel}>{mood.date}</Text>
-                <Text style={styles.mooddayofweekLabel}>{mood.dayOfWeek}</Text>
-                <View style={styles.moodIconContainer}>
-                  <View style={styles.circle}>{moodIcons[mood.moodIcon]}</View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </View> */}
         <View style={styles.whiteContainer}>
           <Text style={styles.title}>Mood Tracker</Text>
           {moods.length === 0 ? (
@@ -375,15 +345,18 @@ const Profile = () => {
           onRequestClose={closeModal}
         >
           <View style={styles.thoughtModalBackground}>
-              <View style={styles.modalContent}>
-              <TouchableOpacity style={styles.headerCloseButton} onPress={closeModal}>
-                      <AntDesign name="close" size={25} color="black" />
-                    </TouchableOpacity>
-                <ScrollView style={styles.scrollView}>
-                  <Text style={styles.modalText}>{selectedPost.thought}</Text>
-                </ScrollView>
-              </View>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.headerCloseButton}
+                onPress={closeModal}
+              >
+                <AntDesign name="close" size={25} color="black" />
+              </TouchableOpacity>
+              <ScrollView style={styles.scrollView}>
+                <Text style={styles.modalText}>{selectedPost.thought}</Text>
+              </ScrollView>
             </View>
+          </View>
         </Modal>
       </ScrollView>
     </ImageBackground>
@@ -740,7 +713,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  
+
   scrollView: {
     maxHeight: 300,
     width: "100%",

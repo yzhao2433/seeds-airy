@@ -7,7 +7,7 @@ import {
   ImageBackground,
   Image,
   TouchableOpacity,
-  Modal
+  Modal,
 } from "react-native";
 import {
   collection,
@@ -20,7 +20,7 @@ import globalFont from "../../styles/globalfont";
 import { app, auth } from "../firebase";
 import { router } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign } from "@expo/vector-icons";
 
 const db = getFirestore(app);
 const userCollection = collection(db, "user");
@@ -121,15 +121,13 @@ const Leaderboard = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
 
-
-
   useEffect(() => {
     const unsubscribe = onSnapshot(
       userCollection,
       async (userSnapShot) => {
         const tempUserScore = [];
         if (userSnapShot.empty) {
-          console.log("No matching documents.");
+          console.error("No matching documents.");
           return;
         }
         const batch = writeBatch(db);
@@ -267,42 +265,53 @@ const Leaderboard = () => {
             <AntDesign name="questioncircleo" size={32} color="#6a6a6a" />
           </TouchableOpacity>
         </View>
-       
+
         <Modal
           animationType="slide"
           transparent={true}
           visible={modalVisible}
           onRequestClose={closeModal}
         >
-          <View style={styles.ModalBackground}>              
-              <View style={styles.modalContent}>
-              <Image source={require("../../assets/images/logo.png")} style={styles.logo} />
-                    <TouchableOpacity style={styles.headerCloseButton} onPress={closeModal}>
-                      <AntDesign name="close" size={25} color="black" />
-                    </TouchableOpacity>
+          <View style={styles.ModalBackground}>
+            <View style={styles.modalContent}>
+              <Image
+                source={require("../../assets/images/logo.png")}
+                style={styles.logo}
+              />
+              <TouchableOpacity
+                style={styles.headerCloseButton}
+                onPress={closeModal}
+              >
+                <AntDesign name="close" size={25} color="black" />
+              </TouchableOpacity>
 
-
-                    <View style={styles.modalTextContent}>
-                        <Text style={styles.modalTitle}>How It Works</Text>
-                        <Text style={styles.modalText}>
-                          You can send up to 10 motivational messages each day to earn points. The leaderboard refreshes at the end of Sunday, displaying the top 10 users with the highest points.
-                        </Text>
-                        <Text style={styles.modalSubtitle}>Points System:</Text>
-                        <View style={styles.bulletPoints}>
-                          <Text style={styles.bulletPoint}>•  1st - 3rd message: 1 pt each</Text>
-                          <Text style={styles.bulletPoint}>•  4th - 7th message: 2 pts each</Text>
-                          <Text style={styles.bulletPoint}>•  8th - 10th message: 3 pts each</Text>
-                        </View>
-                        <Text style={styles.modalText}>
-                            Send up to 10 messages daily to accumulate points and become a top Airies! Good luck!
-                        </Text>
-                      </View>
-
+              <View style={styles.modalTextContent}>
+                <Text style={styles.modalTitle}>How It Works</Text>
+                <Text style={styles.modalText}>
+                  You can send up to 10 motivational messages each day to earn
+                  points. The leaderboard refreshes at the end of Sunday,
+                  displaying the top 10 users with the highest points.
+                </Text>
+                <Text style={styles.modalSubtitle}>Points System:</Text>
+                <View style={styles.bulletPoints}>
+                  <Text style={styles.bulletPoint}>
+                    • 1st - 3rd message: 1 pt each
+                  </Text>
+                  <Text style={styles.bulletPoint}>
+                    • 4th - 7th message: 2 pts each
+                  </Text>
+                  <Text style={styles.bulletPoint}>
+                    • 8th - 10th message: 3 pts each
+                  </Text>
+                </View>
+                <Text style={styles.modalText}>
+                  Send up to 10 messages daily to accumulate points and become a
+                  top Airies! Good luck!
+                </Text>
               </View>
-  
-        </View>
+            </View>
+          </View>
         </Modal>
-
 
         <View style={styles.yourRankingContainer}>
           <View style={styles.yourRanking}>
@@ -334,7 +343,6 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 18,
-    
   },
   headerContainer: {
     flexDirection: "row",
@@ -356,7 +364,7 @@ const styles = StyleSheet.create({
   instructions: {
     backgroundColor: "white",
     borderRadius: 50,
-    padding:2,
+    padding: 2,
     borderColor: "white",
     alignItems: "center",
     justifyContent: "flex-end",
@@ -365,7 +373,7 @@ const styles = StyleSheet.create({
   },
   yourRankingContainer: {
     marginBottom: 40,
-    opacity:0.95, 
+    opacity: 0.95,
   },
   yourRankingText: {
     fontSize: 18,
@@ -404,8 +412,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3.84,
     marginBottom: 15,
-    opacity:1,
-
+    opacity: 1,
   },
   profileImageContainer: {
     position: "relative",
@@ -477,49 +484,48 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   modalTextContent: {
-    justifyContent:'center',
-    alignContent:'center',
+    justifyContent: "center",
+    alignContent: "center",
   },
   modalTitle: {
     fontSize: 23,
-    fontWeight: 'bold',
-    textAlign:'center',
-    fontFamily:'Nunito'
+    fontWeight: "bold",
+    textAlign: "center",
+    fontFamily: "Nunito",
   },
   modalText: {
     marginVertical: 10,
     fontSize: 15,
     fontFamily: "Montserrat",
     textAlign: "left",
-    lineHeight:22,
-    marginBottom:25,
+    lineHeight: 22,
+    marginBottom: 25,
   },
   modalSubtitle: {
     fontSize: 17,
-    fontWeight: 'bold',
-    fontFamily:'Nunito',
-    marginBottom:5,
+    fontWeight: "bold",
+    fontFamily: "Nunito",
+    marginBottom: 5,
   },
   bulletPoints: {
     marginLeft: 15,
-    fontFamily:'Montserrat',
-    marginBottom:15,
+    fontFamily: "Montserrat",
+    marginBottom: 15,
   },
   bulletPoint: {
     fontSize: 13,
     marginBottom: 5,
-    fontFamily:'Montserrat',
+    fontFamily: "Montserrat",
     lineHeight: 17,
   },
   logo: {
     width: 100,
     height: 100,
-    zIndex:100,
-    right:260,
-    top:-65,
-    position:'absolute',
+    zIndex: 100,
+    right: 260,
+    top: -65,
+    position: "absolute",
   },
-
 });
 
 export default Leaderboard;

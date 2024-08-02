@@ -124,36 +124,7 @@ const MoodIcon = ({ moodIconNumber }) => {
   );
 };
 
-// const fetchReceiverData = async (receiverUID: string) => {
-//   try {
-//     console.log();
-//     const receiverRef = doc(usersRef, receiverUID);
-//     const receiverSnap = await getDoc(receiverRef);
-//     if (receiverSnap.exists()) {
-//       const receiverData = {
-//         uid: receiverUID,
-//         ...receiverSnap.data(),
-//       };
-//       console.log("line 100 ", receiverData);
-//       return {
-//         nickname: receiverData.nickname || "Unknown User",
-//         firstThought:
-//           receiverData.thoughts?.[0]?.thought || "User did not input a thought",
-//         avatar: receiverData.avatar || 0,
-//         messageToMe: receiverData.messagesReceived || "",
-//         mood: receiverData.moods?.[0] || 0,
-//         hobbies: receiverData.hobbies || "",
-//       };
-//     } else {
-//       throw new Error("Receiver data not found");
-//     }
-//   } catch (error) {
-//     console.error("Error getting the receiver data:", error);
-//   }
-// };
-
 const UserCard = ({ receiverUID, message }) => {
-  console.log("User Card received on writing message", receiverUID);
   const [receiver, setReceiver] = useState<{
     uid: String;
     nickname: string;
@@ -186,8 +157,6 @@ const UserCard = ({ receiverUID, message }) => {
     const thisDayOfWeek = getDayOfWeek();
     const todayDate = getTodayDate();
     const todayDateMon = getTodayDateMon();
-    console.log("Today's day of week", thisDayOfWeek);
-    console.log("Today's Date:", todayDate);
 
     const unsubscribe = onSnapshot(
       receieverDocRef,
@@ -228,12 +197,6 @@ const UserCard = ({ receiverUID, message }) => {
             avatar: receiver.data().avatar,
             hobbies: receiver.data().hobbies || "",
           };
-          console.log(
-            "line 99 ",
-            receiver.data().moods.find((mood) => mood.date === todayDate)
-          );
-          console.log("full mood list ", receiver.data().moods);
-          console.log("line 100 ", receiverData);
           setReceiver(receiverData);
         } else {
           throw new Error("Receiver data not found");
@@ -292,13 +255,9 @@ export const WritingMessage = ({
 }) => {
   const [message, setMessage] = useState("");
   const [messageTooShort, setMessageTooShort] = useState(false);
-  // const { senderUID, receiverUID, onClose } = params;
-  //const message = "";
-  console.log("senderID is for writing message ", senderUID);
-  console.log("receiverID is for writing message ", receiverUID);
+
   const addRecord = async (senderID, receiverID) => {
     try {
-      console.log("addRecord called ");
       const receiverRef = doc(usersRef, receiverID);
       const receiverSnap = await getDoc(receiverRef);
       if (receiverSnap.exists()) {
@@ -379,7 +338,6 @@ export const WritingMessage = ({
                   receiverUID={receiverUID}
                   message={messageDisplayed}
                 />
-                {/* <Text style={styles.textTitle}> Message to A Person</Text> */}
                 <View style={styles.you}>
                   <Text> YOU: </Text>
                 </View>

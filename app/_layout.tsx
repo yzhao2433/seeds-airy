@@ -61,8 +61,6 @@ export default function RootLayout() {
     return null;
   }
 
-  console.log(user);
-
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <SafeAreaView style={{ flex: 1 }}>

@@ -197,7 +197,6 @@ const ReceiveMessage = () => {
   // Handles when current user sends someone else a message
   const handleOpenModal = async (user, message) => {
     await checkRequestValid(user);
-    console.log("Checking request validity...");
     // has at least 1 more chance to send a message and current users did not
     // recently send that person a message
     if (!currUserInList && canSend) {
@@ -265,10 +264,8 @@ const ReceiveMessage = () => {
           currUserData?.messageLeft === 0 ? false : true;
         setCanSendMessage(messageChanceLeft);
 
-        console.log("lin 207");
         // Check if there are any messages received
         if (currMessages.length !== 0) {
-          console.log("lin 210 ", currMessages.length);
           const tempSenderData = [];
           let completedRequest = 0;
           // Map over the messagesReceived array and fetch sender data for each message
@@ -303,7 +300,6 @@ const ReceiveMessage = () => {
                   avatar: senderData?.avatar,
                 };
                 tempSenderData.push(senderObj);
-                console.log("line 229 ", tempSenderData);
               }
             } catch (error) {
               console.error("Can't fetch this user");

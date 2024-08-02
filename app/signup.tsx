@@ -146,7 +146,6 @@ function SignUp() {
         rank: users.length + 1,
       });
     } catch (e) {
-      console.log(e);
       const error = e as FirebaseError;
       if (error.code === "auth/email-already-in-use") {
         setErrorUsername(

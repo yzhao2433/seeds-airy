@@ -82,8 +82,6 @@ const avatars = [
 const db = getFirestore(app);
 const currUserId = auth.currentUser?.uid ?? "";
 const usersRef = collection(db, "user");
-console.log("line25: ", currUserId);
-console.log("line26: ", auth.currentUser);
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
@@ -135,9 +133,6 @@ const Home = () => {
           if (doc.exists()) {
             const userData = doc.data();
             setUserData(userData);
-            console.log("User data updated:", userData);
-            console.log("User rank:", userData.rank);
-            console.log("User score:", userData.score);
 
             const todayDate = getTodayDay();
             const todayMood = userData.moods?.find(
@@ -151,9 +146,8 @@ const Home = () => {
               )?.thought || ""
             );
             setMessageLeft(userData.messageLeft || 0);
-            console.log("User data updated:", userData);
           } else {
-            console.log("User document not found");
+            console.error("User document not found");
           }
         },
         (error) => {
@@ -163,11 +157,9 @@ const Home = () => {
 
       return () => unsubscribe();
     } else {
-      console.log("Current user not found");
+      console.error("Current user not found");
     }
   }, []);
-
-  console.log("Current user data:", userData);
 
   const updateUserMood = async (newMoodIcon) => {
     const todayDate = getTodayDay();
@@ -195,8 +187,6 @@ const Home = () => {
         }
       }
       await updateDoc(userDocRef, { moods: moodIcons });
-
-      console.log("Mood icons updated successfully");
       setSelectedMood(newMoodIcon);
     } catch (error) {
       console.error("Error updating mood icons:", error);
@@ -223,9 +213,8 @@ const Home = () => {
           }
         }
         await updateDoc(userDocRef, { thoughts });
-        console.log("Thoughts updated successfully");
       } else {
-        console.log("User document not found");
+        console.error("User document not found");
       }
     } catch (error) {
       console.error("Error updating thoughts:", error);
@@ -242,7 +231,6 @@ const Home = () => {
   const handleCloseModal = () => {
     setIsModalVisible(false);
   };
-
 
   return (
     <ImageBackground
@@ -359,8 +347,7 @@ const Home = () => {
             onChangeText={setThought}
           />
           <View style={styles.buttonContainer}>
-            <View style={styles.placeholder}>
-            </View>
+            <View style={styles.placeholder}></View>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: buttonBgColor.submit }]}
               onPress={handleThoughtSubmit}
@@ -376,10 +363,12 @@ const Home = () => {
             >
               <View style={styles.modalBackground}>
                 <View style={styles.modalContent}>
-
-                  <TouchableOpacity style={styles.headerCloseButton} onPress={handleCloseModal}>
-                      <AntDesign name="close" size={25} color="black" />
-                    </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.headerCloseButton}
+                    onPress={handleCloseModal}
+                  >
+                    <AntDesign name="close" size={25} color="black" />
+                  </TouchableOpacity>
                   <Text style={styles.modalText}>
                     You have submitted your thoughts today. Feel free to come
                     back and edit this thought if you wish!

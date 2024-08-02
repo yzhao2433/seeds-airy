@@ -24,7 +24,7 @@ Airy is a mental health-focused app designed to help college students manage str
 
 ## Credits
 
-AIRY is a project developed by Ashley Huang, Rishika Cherivirala, and Yinglin Zhao during the summer of 2024 as part of Dandilyonn SEEDS[**Seeds**](https://sites.google.com/view/seeds-dandilyonn) (​Summer Environmental Education Development Program).
+AIRY is a project developed by Ashley Huang, Rishika Cherivirala, and Yinglin Zhao during the summer of 2024 as part of Dandilyonn [**SEEDS**](https://sites.google.com/view/seeds-dandilyonn) (​Summer Environmental Education Development Program).
 
 Special thanks to Dandilyonn for organizing SEEDS 2024, our mentor Linh for invaluable guidance and support, and Archana Chaudhary for leading this program. We also appreciate and want to express our gratitude to our mentors, Simon, Daniel, and Poorva for their support and insights, that were instrumental in bringing Airy to life.
 

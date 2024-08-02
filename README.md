@@ -2,15 +2,15 @@
 **![Image](airyappcover.png)**
 
 ## Table of Contents
-- [App Summary](#app-summary)
-- [Features Overview](#features-overview)
+- [AIRY Overview](#app-summary)
 - [Credits](#credits)
 
-## App Summary
+## AIRY Overview
+### AIRY Summary
 
 Airy is a mental health-focused app designed to help college students manage stress and improve well-being by providing a supportive community for sharing thoughts and emotions. By offering a safe space for anonymous journaling and motivational messaging, Airy aims to reduce social isolation and foster a sense of belonging.
 
-## Features Overview
+### Features Overview
 - **Onboarding Screens**: Get started effortlessly with onboarding screen that guide you through Airy's key features and benefits
 - **Secure Sign-Up**: Create your account safely with email and password. You can personalize your profile by choosing a nickname, writing down your hobbies, and selecting from 48 cute avatars. This ensures your identity is protected while making your profile uniquely yours.
 - **Easy Login**: Access your account quickly and securely using your email and password
@@ -24,7 +24,7 @@ Airy is a mental health-focused app designed to help college students manage str
 
 ## Credits
 
-AIRY is a project developed by Ashley Huang, Rishika Cherivirala, and Yinglin Zhao during the summer of 2024 as part of Dandilyonn SEEDS (​Summer Environmental Education Development Program).
+AIRY is a project developed by Ashley Huang, Rishika Cherivirala, and Yinglin Zhao during the summer of 2024 as part of Dandilyonn SEEDS[**Seeds**](https://sites.google.com/view/seeds-dandilyonn) (​Summer Environmental Education Development Program).
 
 Special thanks to Dandilyonn for organizing SEEDS 2024, our mentor Linh for invaluable guidance and support, and Archana Chaudhary for leading this program. We also appreciate and want to express our gratitude to our mentors, Simon, Daniel, and Poorva for their support and insights, that were instrumental in bringing Airy to life.
 

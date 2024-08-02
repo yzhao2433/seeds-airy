@@ -75,11 +75,18 @@ const avatars = [
   { id: 48, source: require("../../assets/icons/tiger.png") },
 ];
 const defaultAvatar = require("../../assets/images/avatar.png");
+
+/**
+ * Retreives the avatar image source based on the number stored on Firestore
+ */
 const getAvatarSource = (avatarId) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
 };
 
+/**
+ * Returns the profile container for the user object passed in.
+ */
 const UserCard = ({ user }) => {
   const avatarSource = getAvatarSource(user.avatar);
   return (
@@ -121,6 +128,12 @@ const Leaderboard = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
 
+  /**
+   * Sets a listener on the user collection and dynamically retreives the
+   * information for each user, updates the ranks of all users,
+   * updates the top 10 board based on the score, and the current user's
+   * score and rank.
+   */
   useEffect(() => {
     const unsubscribe = onSnapshot(
       userCollection,
@@ -150,11 +163,16 @@ const Leaderboard = () => {
           }
         });
 
+        // Ranking is calucated based on score.
+        // If score is the same, the user who sent their last message first get
+        // priority over the user sent their last message more recently
+        // If the time last message sent and score are tied, then users are
+        // ranked alphabetically.
         tempUserScore.sort((userA, userB) => {
           if (userA.userScore !== userB.userScore) {
             return userB.userScore - userA.userScore;
           } else if (userA.activeDate !== userB.activeDate) {
-            return userB.activeDate - userA.activeDate;
+            return userA.activeDate - userB.activeDate;
           } else {
             const userAName = userA.nickname.toUpperCase();
             const userBName = userB.nickname.toUpperCase();
@@ -190,6 +208,9 @@ const Leaderboard = () => {
     return () => unsubscribe();
   }, []);
 
+  /**
+   * Reset's all user's message sending chances.
+   */
   // source: https://blog.greenroots.info/how-to-use-javascript-scheduling-methods-with-react-hooks
   const runAtEndOfDay = async (userUIDList) => {
     const batch = writeBatch(db);
@@ -200,7 +221,9 @@ const Leaderboard = () => {
     await batch.commit();
   };
 
-  // Calculate the time remaining until the end of the day
+  /**
+   * Calculate the time remaining until the end of the day
+   */
   function getTimeUntilEndOfDay() {
     const now = new Date();
     const endOfDay = new Date();
@@ -208,22 +231,31 @@ const Leaderboard = () => {
     return endOfDay - now;
   }
 
-  // will call this function at the end of the day
+  /**
+   * Calls the function used to reset message sending chances at the end of the day
+   */
   setTimeout(() => {
     runAtEndOfDay(allUserUID);
     // 24 hour * 60 min * 60 sec * 1000 millisec
     setInterval(runAtEndOfDay, 24 * 60 * 60 * 1000);
   }, getTimeUntilEndOfDay());
 
+  /**
+   * Reset's all user's ranks and scores.
+   */
   const runAtEndOfWeek = async (userUIDList) => {
     const batch = writeBatch(db);
     userUIDList.forEach((userUID) => {
       const userDoc = doc(db, "user", userUID);
       batch.update(userDoc, { rank: 0 });
+      batch.update(userDoc, { score: 0 });
     });
     await batch.commit();
   };
 
+  /**
+   * Calculate the time remaining until the end of the week
+   */
   function getTimeUntilEndOfWeek() {
     const now = new Date();
     const endOfWeek = new Date();
@@ -231,6 +263,9 @@ const Leaderboard = () => {
     return endOfWeek - now;
   }
 
+  /**
+   * Calls the function used to reset ranks and scores at the end of the week
+   */
   setTimeout(() => {
     runAtEndOfWeek(allUserUID);
     // 7 days * 24 hour * 60 min * 60 sec * 1000 millisec

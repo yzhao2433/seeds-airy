@@ -84,6 +84,9 @@ const usersRef = collection(db, "user");
 
 const defaultAvatar = require("../assets/images/avatar.png");
 
+/**
+ * Retreives the avatar image source based on the number stored on Firestore
+ */
 const getAvatarSource = (avatarId) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
@@ -114,6 +117,10 @@ const getBackgroundColor = (moodIconNumber) => {
   }
 };
 
+/**
+ * Return the mood container with the matching background color and icon based
+ * on the user field moodIcon
+ */
 const MoodIcon = ({ moodIconNumber }) => {
   const backgroundColor = getBackgroundColor(moodIconNumber);
 
@@ -124,6 +131,10 @@ const MoodIcon = ({ moodIconNumber }) => {
   );
 };
 
+/**
+ * Returns the profile container of receiver who the current user wants to
+ * send a message to.
+ */
 const UserCard = ({ receiverUID, message }) => {
   const [receiver, setReceiver] = useState<{
     uid: String;
@@ -134,6 +145,14 @@ const UserCard = ({ receiverUID, message }) => {
   }>();
   const receieverDocRef = doc(usersRef, receiverUID);
 
+  /**
+   * Set a listener to the receiever's document and displays the receiver's mood
+   * for the day, avatar, and hobby.
+   * - If the current user called the Write Message modal from the send page, the
+   *  user card will also display the receiver's thought of the day.
+   * - If the current user called the Write Message modal from the received page,
+   *  the user card will also display the message from the receiver.
+   */
   useEffect(() => {
     const getTodayDate = () => {
       const today = new Date();
@@ -256,6 +275,15 @@ export const WritingMessage = ({
   const [message, setMessage] = useState("");
   const [messageTooShort, setMessageTooShort] = useState(false);
 
+  /**
+   * Prepends the message that the current user wrote to the receiver's array of
+   * messageReceived. Then, updates the current user's number of message left,
+   * score, and time that the last message was sent.
+   *
+   * @param senderID A string - the UID of the sender (current user)
+   * @param receiverID A string- the UID of the receiver (the user the current user
+   * is sending the message to)
+   */
   const addRecord = async (senderID, receiverID) => {
     try {
       const receiverRef = doc(usersRef, receiverID);
@@ -282,13 +310,6 @@ export const WritingMessage = ({
         const numMessageSent = 10 - senderMessageLeft + 1;
         const addedNum = numMessageSent <= 3 ? 1 : numMessageSent <= 7 ? 2 : 3;
         const newScore = senderCurrData?.score + addedNum;
-        // const messagesReceived = receiverSnap.data()?.messageReceived;
-        // if (messagesReceived.length > 0) {
-        //   const messages = messagesReceived.map((entry) => entry.message);
-        //   setReceivedMessages(messages).filter(
-        //     (entry) => entry.senderID == senderID
-        //   );
-        // }
         await updateDoc(senderRef, { messageLeft: senderMessageLeft - 1 });
         await updateDoc(senderRef, { score: newScore });
         const sendTime = Date();
@@ -299,6 +320,13 @@ export const WritingMessage = ({
     }
   };
 
+  /**
+   * When current user tries to send the message they composed, it checks to
+   * the length of the text. If the message is less than 2 characters in length,
+   * the user will receive a warning. If the message is 2 or mroe characters in
+   * length, then addRecord is called to modify the Firestore and the Write Message
+   * modal is closed,
+   */
   const handleSend = () => {
     if (message.length < 2) {
       setMessageTooShort(true);

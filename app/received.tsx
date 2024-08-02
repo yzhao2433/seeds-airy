@@ -83,6 +83,9 @@ const avatars = [
 
 const defaultAvatar = require("../assets/images/avatar.png");
 
+/**
+ * Retreives the avatar image source based on the number stored on Firestore
+ */
 const getAvatarSource = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
@@ -113,6 +116,10 @@ const getBackgroundColor = (moodIconNumber) => {
   }
 };
 
+/**
+ * Return the mood container with the matching background color and icon based
+ * on the user field moodIcon
+ */
 const MoodIcon = ({ moodIconNumber }) => {
   const backgroundColor = getBackgroundColor(moodIconNumber);
 
@@ -123,15 +130,13 @@ const MoodIcon = ({ moodIconNumber }) => {
   );
 };
 
+/**
+ * Returns the profile container of users who has recently sent current user
+ * a message.
+ */
 const UserCard = ({ user, onSend }) => {
   const avatarSource = getAvatarSource(user.avatar);
   const message = user.message;
-
-  // const handleSend = () =>
-  //   router.navigate({
-  //     pathname: "/writemessage",
-  //     params: { senderUID: auth.currentUser?.uid, receiverUID: user.uid },
-  //   });
 
   return (
     <View style={styles.profileContainer}>
@@ -172,9 +177,7 @@ const UserCard = ({ user, onSend }) => {
   );
 };
 
-// ReceiveMessage component
 const ReceiveMessage = () => {
-  // Initializing sendersData to be an empty array
   const [sendersData, setSendersData] = useState<
     {
       uid: string;
@@ -194,7 +197,12 @@ const ReceiveMessage = () => {
   const [currUserInList, setCurrUserInList] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
 
-  // Handles when current user sends someone else a message
+  /**
+   * When the current user choose to reply to an user who sent them a message,
+   * - If the message request is valid, then it calls the Writing Message modal.
+   * - If the message request is invalid, then an error modal depending on why the
+   *  message request was invalid.
+   */
   const handleOpenModal = async (user, message) => {
     await checkRequestValid(user);
     // has at least 1 more chance to send a message and current users did not
@@ -208,12 +216,27 @@ const ReceiveMessage = () => {
       setErrorModalVisible(true);
     }
   };
+
+  /**
+   * Handles when the Write Message tab is closed either when the current user
+   * sends their message or when the modal is exited.
+   */
   const handleCloseModal = () => setIsModalVisible(false);
+
+  /**
+   * Handles when the error pop up that shows up when the user have already
+   * reached their daily message sending capacity and/or when the error pop up
+   * is exited.
+   */
   const handleExitErrorModal = () => setErrorModalVisible(false);
 
-  // user is an object with fields about the user current user want to send a message to
+  /**
+   * Checks if the current user have already sent the user a message recently.
+   * - If the current user recently sent the user a message, it will set
+   *  currUserInList and will prevent current user from spamming the user object
+   *  passed in.
+   */
   const checkRequestValid = (user) => {
-    // check if I am on that user's messageRecieved field
     const unsubscribe = onSnapshot(
       doc(usersRef, user.uid),
       (receiverCheck) => {
@@ -236,7 +259,12 @@ const ReceiveMessage = () => {
     return () => unsubscribe();
   };
 
-  // Retreive all 5 users that recently sent current user a message
+  /**
+   * Sets a listener on the current user's messageRecieved field and dynamically
+   * updates the received screen to reflect the 5 most recent messages the current
+   * user received. It will fetch the avatar, hobbies, mood, and message sent
+   * of those 5 users to display.
+   */
   useEffect(() => {
     // Used to fetch the mood for today
     const getTodayDate = () => {

@@ -85,11 +85,17 @@ const usersRef = collection(db, "user");
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
+/**
+ * Retreives the avatar image source based on the number stored on Firestore
+ */
 const getAvatar = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
 };
 
+/**
+ * Gets the date with the month and day; used for retrieving user's thought of the day
+ */
 const getTodayDate = () => {
   const today = new Date();
   const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -97,12 +103,18 @@ const getTodayDate = () => {
   return `${month}-${day}`;
 };
 
+/**
+ * Gets the date with the day only; used for retrieving user's mood of the day
+ */
 const getTodayDay = () => {
   const today = new Date();
   const day = String(today.getDate()).padStart(2, "0");
   return day;
 };
 
+/**
+ * Gets day of week only; used for retrieving user's mood of the day
+ */
 const getDayOfWeek = () => {
   const today = new Date();
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -122,6 +134,11 @@ const Home = () => {
   const [messageLeft, setMessageLeft] = useState(0);
   const avatarSource = userData ? getAvatar(userData.avatar) : defaultAvatar;
 
+  /**
+   * Sets a listener on the current user's document fields and retrieves the user's
+   * profile information (nickname, rank, score, avatar, and hobbies) used for
+   * the user card.
+   */
   useEffect(() => {
     const currentUser = auth.currentUser;
     if (currentUser) {
@@ -161,6 +178,19 @@ const Home = () => {
     }
   }, []);
 
+  /**
+   * Updates the user's mood once a mood icon is pressed.
+   *
+   * - If the user updates their mood for the day, the Firestore moodIcon field
+   *   will be updated.
+   * - If the user is inputting their mood for a new day and they have been
+   *   inputting a mood for the past 7 days, the oldest entry will be removed
+   *   and the mood for the new day will be prepended to the mood history.
+   * - If the user is inputting their mood for a new day and they don't have
+   *   a mood history, the mood for the new day will be prepended to the mood
+   *   history.
+   */
+
   const updateUserMood = async (newMoodIcon) => {
     const todayDate = getTodayDay();
     const todayDayOfWeek = getDayOfWeek();
@@ -193,6 +223,19 @@ const Home = () => {
     }
   };
 
+  /**
+   * Updates the user's thought once the submit button is pressed.
+   *
+   * - If the user updates their thought for the day, the Firestore thought field
+   *   will be updated.
+   * - If the user is inputting their thought for a new day and they have been
+   *   inputting a thought for the past 7 days, the oldest entry will be removed
+   *   and the though for the new day will be prepended to the thought history.
+   * - If the user is inputting their thought for a new day and they don't have
+   *   a thought history, the thought for the new day will be prepended to the thought
+   *   history.
+   */
+
   const updateUserThoughts = async () => {
     const userId = auth.currentUser?.uid || "";
     const todayDate = getTodayDate();
@@ -221,6 +264,9 @@ const Home = () => {
     }
   };
 
+  /**
+   * Handles the submit button for the thought container and update the Firestore accordingly
+   */
   const handleThoughtSubmit = () => {
     updateUserThoughts();
     setTextAreaBgColor("#FFFFFF");

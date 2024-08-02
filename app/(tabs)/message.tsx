@@ -85,6 +85,9 @@ const avatars = [
 
 const defaultAvatar = require("../../assets/images/avatar.png");
 
+/**
+ * Retreives the avatar image source based on the number stored on Firestore
+ */
 const getAvatarSource = (avatarId) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
   return avatar ? avatar.source : defaultAvatar;
@@ -259,7 +262,13 @@ const SendMessage = () => {
 
   const handleSendPress = () => setIsSendEnabled(true);
   const handleReceivePress = () => setIsSendEnabled(false);
-  // Handles when current user sends someone else a message
+
+  /**
+   * When the current user choose to send a message,
+   * - If the message request is valid, then it calls the Writing Message modal.
+   * - If the message request is invalid, then an error modal depending on why the
+   *  message request was invalid.
+   */
   const handleOpenModal = async (user, message) => {
     await checkChancesLeft();
     await checkSentBefore(user);

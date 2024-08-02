@@ -96,11 +96,18 @@ const Profile = () => {
 
   const defaultAvatar = require("../../assets/images/avatar.png");
 
+  /**
+   * Retreives the avatar image source based on the number stored on Firestore
+   */
   const getAvatar = (avatarId: number) => {
     const avatar = avatars.find((avatar) => avatar.id === avatarId);
     return avatar ? avatar.source : defaultAvatar;
   };
 
+  /**
+   * Sets a listener on the current user's document and retrieves the user's
+   * thought history, mood history, avatar, nickname, and hobbies.
+   */
   useEffect(() => {
     const currentUser = auth.currentUser;
     if (currentUser) {
@@ -121,8 +128,6 @@ const Profile = () => {
           console.error("Error fetching user data:", error);
         }
       );
-
-      // Clean up the listener on component unmount
       return () => unsubscribe();
     } else {
       console.error("Current user not found");
@@ -154,16 +159,25 @@ const Profile = () => {
     }
   };
 
+  /**
+   * When a thought container is pressed on, a modal with the full thought pops up.
+   */
   const openModal = (post) => {
     setSelectedPost(post);
     setModalVisible(true);
   };
 
+  /**
+   * To close the thought modal.
+   */
   const closeModal = () => {
     setSelectedPost({});
     setModalVisible(false);
   };
 
+  /**
+   * Handles when the edit button is pressed and the user changes their avatar.
+   */
   const handleAvatarSelect = async (item: { id: number; source: any }) => {
     const usersRef = collection(db, "user");
     const currentUser = auth.currentUser?.uid;

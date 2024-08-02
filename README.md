@@ -1,6 +1,5 @@
 # AIRY
-
-## Cover
+**![Image](airyappcover.png)**
 
 ## Table of Contents
 - [App Summary](#app-summary)

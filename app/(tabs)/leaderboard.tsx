@@ -78,6 +78,7 @@ const defaultAvatar = require("../../assets/images/avatar.png");
 
 /**
  * Retreives the avatar image source based on the number stored on Firestore
+ * @param avatarId : a counting number from 1 to 48 (inclusive)
  */
 const getAvatarSource = (avatarId) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
@@ -86,6 +87,9 @@ const getAvatarSource = (avatarId) => {
 
 /**
  * Returns the profile container for the user object passed in.
+ *
+ * @param user: an object with fields: ranking, score, nickname, avatar,
+ * and hobbies
  */
 const UserCard = ({ user }) => {
   const avatarSource = getAvatarSource(user.avatar);
@@ -118,6 +122,10 @@ const UserCard = ({ user }) => {
   );
 };
 
+/**
+ * Returns the dynamic leaderboard based on user's score and when their
+ * last message was sent
+ */
 const Leaderboard = () => {
   const [top10Users, setTop10Users] = useState([]);
   const [allUserScore, setAllUserScore] = useState([]);
@@ -210,6 +218,9 @@ const Leaderboard = () => {
 
   /**
    * Reset's all user's message sending chances.
+   *
+   * @param userUIDList : an array of UID reference strings to all the
+   * users in the collection
    */
   // source: https://blog.greenroots.info/how-to-use-javascript-scheduling-methods-with-react-hooks
   const runAtEndOfDay = async (userUIDList) => {
@@ -242,6 +253,9 @@ const Leaderboard = () => {
 
   /**
    * Reset's all user's ranks and scores.
+   *
+   * @param userUIDList : an array of UID reference strings to all the
+   * users in the collection
    */
   const runAtEndOfWeek = async (userUIDList) => {
     const batch = writeBatch(db);
@@ -272,10 +286,18 @@ const Leaderboard = () => {
     setInterval(runAtEndOfWeek, 7 * 24 * 60 * 60 * 1000);
   }, getTimeUntilEndOfWeek());
 
+  /**
+   * Handles the opening of the help pop up; which contains details on how the
+   * score is calculated.
+   */
   const openModal = () => {
     setModalVisible(true);
   };
 
+  /**
+   * Handles the closing of the help pop up; which contains details on how the
+   * score is calculated.
+   */
   const closeModal = () => {
     setModalVisible(false);
   };

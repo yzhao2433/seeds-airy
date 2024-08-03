@@ -17,6 +17,9 @@ import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
+/**
+ * Lays the features offered by our app
+ */
 const featureSelection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -55,6 +58,9 @@ const featureSelection = () => {
     },
   ];
 
+  /**
+   * Allows the users to scroll through each of the feature description panels.
+   */
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollPosition / 350);
@@ -205,7 +211,7 @@ const styles = StyleSheet.create({
     fontWeight: 400,
     marginTop: "2%",
   },
-  
+
   feature2Title: {
     color: "#4F759B",
     fontSize: 24,
@@ -213,7 +219,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     alignSelf: "flex-end",
     width: "72%",
-    textAlign:"right",
+    textAlign: "right",
   },
 
   cloud2: {

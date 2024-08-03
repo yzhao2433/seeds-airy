@@ -98,10 +98,12 @@ const avatars = [
   { id: 46, source: require("../assets/icons/squirrel.png") },
   { id: 47, source: require("../assets/icons/stingray.png") },
   { id: 48, source: require("../assets/icons/tiger.png") },
-  // { id: 49, source: require("../assets/icons/panda.png") },
-  // { id: 50, source: require("../assets/icons/axolotl.png") },
 ];
 
+/**
+ * Returns the sign up screen with fields that the user need to fill in to
+ * complete their profile and updates Firestore according.
+ */
 function SignUp() {
   const [selectedAvatar, setSelectedAvatar] = useState<
     { id: number; source: any } | undefined

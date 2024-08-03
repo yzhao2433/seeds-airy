@@ -177,6 +177,10 @@ const UserCard = ({ user, onSend }) => {
   );
 };
 
+/**
+ * Returns the received screen with an array of the 5 users who most recently
+ * sent a message to the current user.
+ */
 const ReceiveMessage = () => {
   const [sendersData, setSendersData] = useState<
     {
@@ -235,6 +239,9 @@ const ReceiveMessage = () => {
    * - If the current user recently sent the user a message, it will set
    *  currUserInList and will prevent current user from spamming the user object
    *  passed in.
+   *
+   * @param user : an object with fields: nickname, thought and mood of the day,
+   * hobbies and avatar number
    */
   const checkRequestValid = (user) => {
     const unsubscribe = onSnapshot(

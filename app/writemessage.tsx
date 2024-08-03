@@ -86,6 +86,7 @@ const defaultAvatar = require("../assets/images/avatar.png");
 
 /**
  * Retreives the avatar image source based on the number stored on Firestore
+ * @param avatarId: a counting number from 1 to 48 (inclusive)
  */
 const getAvatarSource = (avatarId) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
@@ -120,6 +121,8 @@ const getBackgroundColor = (moodIconNumber) => {
 /**
  * Return the mood container with the matching background color and icon based
  * on the user field moodIcon
+ *
+ * @param moodIconNumber: a counting number from 1 to 5 (inclusive)
  */
 const MoodIcon = ({ moodIconNumber }) => {
   const backgroundColor = getBackgroundColor(moodIconNumber);
@@ -134,6 +137,13 @@ const MoodIcon = ({ moodIconNumber }) => {
 /**
  * Returns the profile container of receiver who the current user wants to
  * send a message to.
+ *
+ * @param receiverUID : a string representation of the receiver's (the user that
+ * the current user wants to send a message to) UID reference number
+ * @param message : the additional text information to be displayed in the
+ * receiver's user card (if it is from the send page, it is the receiver's
+ * thought; if it is from the received page, it is the message sent to the
+ * current user written by the receiver)
  */
 const UserCard = ({ receiverUID, message }) => {
   const [receiver, setReceiver] = useState<{
@@ -266,6 +276,23 @@ const UserCard = ({ receiverUID, message }) => {
   );
 };
 
+/**
+ * Returns the Write Message modal includes the receiver's profile card, the
+ * text input field, and the send button. Once message is sent, the Firestore
+ * will be updated accordingly
+ *
+ * @param senderUID : a string representation of the UID reference of the
+ * current user
+ * @param receiverUID : a string representation of the UID reference of the
+ * user the current user wants to send a message to
+ * @param onClose : a function to handle closing the write message modal
+ * @param messageDisplayed : string of the additional text being displayed for
+ * the receiver's profile card in addition to the mood, nickname, and hobbies.
+ * If this modal is called from the send screen, it will be an empty string to
+ * indicate the receiever's thought need to be displays. If this modal is called
+ * from the received screen, it will be the message the receiver wrote to the
+ * current user.
+ */
 export const WritingMessage = ({
   senderUID,
   receiverUID,

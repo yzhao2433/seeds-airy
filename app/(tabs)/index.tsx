@@ -87,6 +87,9 @@ const defaultAvatar = require("../../assets/images/avatar.png");
 
 /**
  * Retreives the avatar image source based on the number stored on Firestore
+ *
+ * @param avatarId: a counting number
+ * @returns the image source to the corresponding avatar number
  */
 const getAvatar = (avatarId: number) => {
   const avatar = avatars.find((avatar) => avatar.id === avatarId);
@@ -95,6 +98,8 @@ const getAvatar = (avatarId: number) => {
 
 /**
  * Gets the date with the month and day; used for retrieving user's thought of the day
+ *
+ * @returns Today's month (2 digits) and day (2 digits)
  */
 const getTodayDate = () => {
   const today = new Date();
@@ -105,6 +110,8 @@ const getTodayDate = () => {
 
 /**
  * Gets the date with the day only; used for retrieving user's mood of the day
+ *
+ * @returns Today's day (2 digits)
  */
 const getTodayDay = () => {
   const today = new Date();
@@ -114,6 +121,8 @@ const getTodayDay = () => {
 
 /**
  * Gets day of week only; used for retrieving user's mood of the day
+ *
+ * @returns Today's shortened day of week name
  */
 const getDayOfWeek = () => {
   const today = new Date();
@@ -121,6 +130,10 @@ const getDayOfWeek = () => {
   return daysOfWeek[today.getDay()];
 };
 
+/**
+ * Returns the home screen with the user's profile information and allows the
+ * user to choose their mood, enter their thoughts, and check and send messages.
+ */
 const Home = () => {
   const [userData, setUserData] = useState(null);
   const [selectedMood, setSelectedMood] = useState(null);
@@ -189,6 +202,9 @@ const Home = () => {
    * - If the user is inputting their mood for a new day and they don't have
    *   a mood history, the mood for the new day will be prepended to the mood
    *   history.
+   *
+   * @param newMoodIcon : a counting number from 1 to 5 (inclusive)
+   * that represents the new selected mood.
    */
 
   const updateUserMood = async (newMoodIcon) => {

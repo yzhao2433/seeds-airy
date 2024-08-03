@@ -118,6 +118,12 @@ const getBackgroundColor = (moodIconNumber) => {
   }
 };
 
+/**
+ * Return the mood container with the matching background color and icon based
+ * on the user field moodIcon
+ *
+ * @param moodIconNumber: a counting number from 1 to 5 (inclusive)
+ */
 const MoodIcon = ({ moodIconNumber }) => {
   const backgroundColor = getBackgroundColor(moodIconNumber);
 
@@ -128,6 +134,9 @@ const MoodIcon = ({ moodIconNumber }) => {
   );
 };
 
+/**
+ * Returns the profile container of the passed in user.
+ */
 const UserCard = ({ user, onSend }) => {
   const [receiver, setReceiver] = useState<{
     uid: String;
@@ -135,11 +144,16 @@ const UserCard = ({ user, onSend }) => {
     firstThought: string;
     todayMood: number;
     hobbies: string;
-    avatar: string;
+    avatar: number;
   }>();
 
   const avatarSource = getAvatarSource(receiver?.avatar);
 
+  /**
+   * Sets a listener to the randomized set of five users and dynamically
+   * retrieves their profile information (thought and mood of the day, nickname,
+   * avatar, and hobbies.)
+   */
   useEffect(() => {
     const getTodayDate = () => {
       const today = new Date();
@@ -249,6 +263,11 @@ const UserCard = ({ user, onSend }) => {
   );
 };
 
+/**
+ * Returns the send screen with a randomized list of 5 users from the database
+ * that the user can choose to send a message to and allows users to refresh
+ * and receive a new randomized list of 5 users from the database.
+ */
 const SendMessage = () => {
   const [usersData, setUsersData] = useState<{ id: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -258,7 +277,7 @@ const SendMessage = () => {
   const [canSend, setCanSendMessage] = useState(true);
   const [currUserInList, setCurrUserInList] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
-  const [oneMessageLeft, setOneMessageLeft] = useState(false);
+  // const [oneMessageLeft, setOneMessageLeft] = useState(false);
 
   const handleSendPress = () => setIsSendEnabled(true);
   const handleReceivePress = () => setIsSendEnabled(false);
@@ -268,8 +287,11 @@ const SendMessage = () => {
    * - If the message request is valid, then it calls the Writing Message modal.
    * - If the message request is invalid, then an error modal depending on why the
    *  message request was invalid.
+   *
+   * @param user : an object with fields: nickname, thought and mood of the day,
+   * hobbies and avatar number
    */
-  const handleOpenModal = async (user, message) => {
+  const handleOpenModal = async (user) => {
     await checkChancesLeft();
     await checkSentBefore(user);
     // has at least 1 more chance to send a message and current users did not
@@ -282,12 +304,31 @@ const SendMessage = () => {
       setErrorModalVisible(true);
     }
   };
+
+  /**
+   * Handles when the Write Message tab is closed either when the current user
+   * sends their message or when the modal is exited.
+   */
   const handleCloseModal = () => setIsModalVisible(false);
+
+  /**
+   * Handles when the error pop up that shows up when the user have already
+   * reached their daily message sending capacity and/or when the error pop up
+   * is exited.
+   */
   const handleExitErrorModal = () => setErrorModalVisible(false);
 
-  // user is an object with fields about the user current user want to send a message to
+  /**
+   * Checks if the current user have already sent the user a message recently.
+   * - If the current user recently sent the user a message, it will set
+   *  currUserInList and will prevent current user from spamming the user object
+   *  passed in.
+   *
+   * @param user : an object with fields: nickname, thought and mood of the day,
+   * hobbies and avatar number
+   */
   const checkSentBefore = (user) => {
-    // check if I am on that user's messageRecieved field
+    // check if current user is on that user's messageRecieved field
     const unsubscribe = onSnapshot(
       doc(usersRef, user.id),
       (receiverCheck) => {
@@ -314,13 +355,19 @@ const SendMessage = () => {
     return () => unsubscribe();
   };
 
+  /**
+   * Checks if the current user have already ran out of message sending chances
+   * for the day.
+   * - If the current user already used up all 10 message sending chances for
+   *  the day, it will set canSendMessage to false and will prevent the user
+   *  from sending another message.
+   */
   const checkChancesLeft = () => {
     const unsubscribe = onSnapshot(
       doc(usersRef, auth.currentUser?.uid),
       (senderCheck) => {
         const userChancesLeft = senderCheck.data()?.messageLeft;
         const canSendMessage = userChancesLeft === 0 ? false : true;
-        setOneMessageLeft(userChancesLeft === 1 ? false : true);
         setCanSendMessage(canSendMessage);
       },
       (error) => {
@@ -334,13 +381,14 @@ const SendMessage = () => {
     fetchData();
   }, []);
 
+  /**
+   * Randomly reselects five users from the database to display on the send page.
+   */
   const fetchData = async () => {
     setLoading(true);
 
     const usersRef = collection(db, "user");
     const currUserId = auth.currentUser?.uid ?? "";
-
-    //account for the fact that your own account cant show up in the messages
 
     try {
       const usersSnapshot = await getDocs(usersRef);

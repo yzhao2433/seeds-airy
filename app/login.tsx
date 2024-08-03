@@ -30,6 +30,11 @@ const defaultValues: FormValues = {
   password: "",
 };
 
+/**
+ * Returns the login page that allows a user with a pre-existing account to
+ * sign in once the correct credentials are entered and displays the appropriate
+ * error message if the entered credentials are incorrect.
+ */
 function Login() {
   const { control, formState, handleSubmit } = useForm<FormValues>({
     defaultValues,

@@ -82,6 +82,10 @@ const avatars = [
   { id: 48, source: require("../../assets/icons/tiger.png") },
 ];
 
+/**
+ * Returns the profile screen that allows the user to choose a new avatar,
+ * see their past 7 days of mood and thought history, and log out
+ */
 const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [thoughts, setThoughts] = useState([]);
@@ -98,6 +102,8 @@ const Profile = () => {
 
   /**
    * Retreives the avatar image source based on the number stored on Firestore
+   *
+   * @param avatarId: a counting number from 1 to 48 (inclusive)
    */
   const getAvatar = (avatarId: number) => {
     const avatar = avatars.find((avatar) => avatar.id === avatarId);
@@ -177,6 +183,10 @@ const Profile = () => {
 
   /**
    * Handles when the edit button is pressed and the user changes their avatar.
+   *
+   * @param id: a string representation of the current user's UID
+   * @param source: a number representation of the new avatar that the current
+   * user selected
    */
   const handleAvatarSelect = async (item: { id: number; source: any }) => {
     const usersRef = collection(db, "user");

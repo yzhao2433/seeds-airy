@@ -2,7 +2,8 @@
 **![Image](airyappcover.png)**
 
 ## Table of Contents
-- [AIRY Overview](#app-summary)
+- [AIRY Overview](#airy-overview)
+- [AIRY App Demo](#app-demo)
 - [Get Started With Our App](#get-started-with-our-app)
 - [Credits](#credits)
 
@@ -22,6 +23,9 @@ Airy is a mental health-focused app designed to help college students manage str
 - **Send Motivational Messages**: Send personalized motivational messages to up to 10 users daily. You can view their avatars, nicknames, hobbies, moods, and thoughts to tailor your message and support others effectively. This fosters a sense of community and encourages positive interactions.
 - **Receive and Respond to Messages**: You can view and respond to motivational messages you've received from other users. This feature helps you connect with the community, engage in supportive conversations, and provide encouragement based on others' thoughts and moods.
 - **Profile Management**: View and manage your profile, including your avatar, mood history for the past seven days, and thought bubble history. You can update your avatar and log out whenever needed. 
+
+## AIRY App Demo
+![AIRY App Demo](AIRYDemo.gif)
 
 ## Get Started With Our App
 

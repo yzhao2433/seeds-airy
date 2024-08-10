@@ -3,6 +3,7 @@
 
 ## Table of Contents
 - [AIRY Overview](#app-summary)
+- [Get Started With Our App](#get-started-with-our-app)
 - [Credits](#credits)
 
 ## AIRY Overview
@@ -21,6 +22,45 @@ Airy is a mental health-focused app designed to help college students manage str
 - **Send Motivational Messages**: Send personalized motivational messages to up to 10 users daily. You can view their avatars, nicknames, hobbies, moods, and thoughts to tailor your message and support others effectively. This fosters a sense of community and encourages positive interactions.
 - **Receive and Respond to Messages**: You can view and respond to motivational messages you've received from other users. This feature helps you connect with the community, engage in supportive conversations, and provide encouragement based on others' thoughts and moods.
 - **Profile Management**: View and manage your profile, including your avatar, mood history for the past seven days, and thought bubble history. You can update your avatar and log out whenever needed. 
+
+## Get Started With Our App
+
+1. **Install Prerequisites**
+
+   - **Download Expo App**: Get the Expo app from the App Store or Google Play.
+   - **Install Node.js**: Go to [nodejs.org](https://nodejs.org/) and download the LTS version. Run the installer to set up Node.js.
+   - **Install VS Code or any other code editor**: Visit [code.visualstudio.com](https://code.visualstudio.com/) and download VS Code.
+
+2. **Clone or Download the Code**
+
+   - Clone our repository or download the code as a ZIP file.
+   - Open the project directory in your code editor (e.g., VS Code).
+
+3. **Install Dependencies**
+
+   - Open your terminal in the project directory and run:
+     `npm install`, or `yarn install`
+
+4. **Run the App**
+
+   - Start the development server by running:
+     `npm start`,`yarn start`, or `bash expo start`
+
+5. **View the App**
+
+   - **On iOS Device**:
+     1. Open the Expo app.
+     2. Scan the QR code displayed in Expo Developer Tools in the powershell.
+
+   - **On Android Device**:
+     1. Open the Expo app.
+     2. Scan the QR code displayed in Expo Developer Tools in the powershell.
+
+   - **On Android Emulator**:
+     1. Open Android Studio and start an emulator from AVD Manager.
+     2. In the project directory, run:
+        `bash expo start`
+     3. In Expo Developer Tools, select "Run on Android Emulator".
 
 ## Credits
 
